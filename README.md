@@ -21,6 +21,14 @@ stack before running anything.
 curl -sL https://drishti.run/install.sh | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au
 ```
 
+Until `drishti.run` resolves, this repository is the mirror the installer already falls
+back to, so it works today:
+
+```bash
+curl -sL https://raw.githubusercontent.com/abhijitsghosh/drishti-deploy/main/install.sh \
+  | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au
+```
+
 The service's role is granted `SecurityAudit` and `ViewOnlyAccess` and nothing more.
 Drishti reads configuration to assess it; it never writes to your account, and it
 never reads the contents of your objects or databases.
