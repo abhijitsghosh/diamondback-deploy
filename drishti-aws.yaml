@@ -1,0 +1,352 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Drishti — read-only AWS ISM PROTECTED posture reporting, deployed into the customer's own
+  AWS account. One App Runner service, one RDS Postgres holding attestations and decisions,
+  one Cognito user pool for sign-in, and an instance role granted SecurityAudit and
+  ViewOnlyAccess and nothing more. Drishti reads configuration to assess it and never writes
+  to the account.
+
+  App Runner rather than ECS behind a load balancer, deliberately: it provides a managed HTTPS
+  endpoint with no certificate or domain of your own, and Cognito will not accept a plain-HTTP
+  callback URL. That single constraint decides the compute choice.
+
+Parameters:
+  ContainerImage:
+    Type: String
+    Description: >
+      Image URI. App Runner pulls only from ECR or ECR Public - not GHCR - so this is either a
+      public.ecr.aws URI or an image mirrored into this account's ECR.
+  ImageRepositoryType:
+    Type: String
+    Default: ECR_PUBLIC
+    AllowedValues: [ECR, ECR_PUBLIC]
+    Description: Where the image lives. ECR_PUBLIC needs no access role.
+  DbInstanceClass:
+    Type: String
+    Default: db.t4g.micro
+  NamePrefix:
+    Type: String
+    Default: drishti
+
+Conditions:
+  PrivateEcr: !Equals [!Ref ImageRepositoryType, ECR]
+
+Resources:
+
+  # ---- Networking -----------------------------------------------------------------
+  # The database is not publicly reachable; App Runner reaches it through a VPC connector.
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.43.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: [{ Key: Name, Value: !Sub '${NamePrefix}-vpc' }]
+
+  # SubnetA/SubnetB are private: they hold the database and the App Runner VPC connector.
+  # App Runner routes ALL of the service's outbound traffic through this VPC, so these subnets
+  # need a path to the internet — otherwise the app cannot reach Cognito's OIDC discovery
+  # document at startup, nor the AWS service endpoints it assesses, and the health check fails.
+  # That egress is via the NAT gateway below.
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.43.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.43.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+
+  # A public subnet to host the NAT gateway (a NAT gateway must live in a subnet with a direct
+  # route to an internet gateway). Nothing else runs here.
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.43.0.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: [{ Key: Name, Value: !Sub '${NamePrefix}-igw' }]
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnetRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  # A single NAT gateway gives the private subnets outbound internet without making anything in
+  # them reachable from outside. One NAT (not one per AZ) keeps cost down; cross-AZ egress is a
+  # negligible data charge for this workload.
+  NatEip:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEip.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags: [{ Key: Name, Value: !Sub '${NamePrefix}-nat' }]
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+  PrivateDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+  PrivateSubnetARouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref SubnetA
+  PrivateSubnetBRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref SubnetB
+
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Drishti database subnets
+      SubnetIds: [!Ref SubnetA, !Ref SubnetB]
+
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Drishti App Runner VPC connector
+      VpcId: !Ref Vpc
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Drishti database - reachable only from the app
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref AppSecurityGroup
+
+  # ---- Database credentials -------------------------------------------------------
+  # The password is generated by Secrets Manager and never exists as a template
+  # parameter, a CLI argument, or a plaintext environment variable. CloudFormation
+  # resolves it into RDS at create time, and App Runner injects it into the container
+  # from the secret at start time — so it is not readable from the service description.
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub '${NamePrefix}/db-password'
+      Description: Drishti database password, generated and held by Secrets Manager
+      GenerateSecretString:
+        PasswordLength: 40
+        # RDS rejects '/', '@', '"' and space in a master password; excluding
+        # punctuation entirely also keeps the value safe in a JDBC URL.
+        ExcludePunctuation: true
+
+  # ---- Database -------------------------------------------------------------------
+  # Attestations and operator decisions live here — the one thing a customer cannot
+  # regenerate by re-scanning. Encrypted at rest, because Drishti should pass its own checks.
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: !Sub '${NamePrefix}-db'
+      Engine: postgres
+      EngineVersion: '16.9'
+      DBInstanceClass: !Ref DbInstanceClass
+      AllocatedStorage: '20'
+      StorageType: gp3
+      StorageEncrypted: true
+      DBName: drishti
+      MasterUsername: drishtiadmin
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${DbSecret}:SecretString}}'
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups: [!GetAtt DbSecurityGroup.GroupId]
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 7
+      MultiAZ: false
+
+  # ---- Sign-in (Cognito, an OIDC provider) ----------------------------------------
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${NamePrefix}-users'
+      AutoVerifiedAttributes: [email]
+      UsernameAttributes: [email]
+      MfaConfiguration: 'OPTIONAL'
+      EnabledMfas: [SOFTWARE_TOKEN_MFA]
+      Policies:
+        PasswordPolicy:
+          # 15 characters is the ISM's own floor for single-factor authentication
+          # (ism-0421); a compliance product should not sign its operators in with less.
+          MinimumLength: 15
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true   # operators are invited, not self-registered
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref UserPool
+      Domain: !Sub '${NamePrefix}-${AWS::AccountId}'
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: drishti
+      GenerateSecret: true               # Drishti is a confidential client
+      AllowedOAuthFlows: [code]
+      AllowedOAuthScopes: [openid, profile, email]
+      AllowedOAuthFlowsUserPoolClient: true
+      SupportedIdentityProviders: [COGNITO]
+      # The callback cannot be known until App Runner has a hostname; install.sh sets it
+      # immediately after the stack completes.
+      CallbackURLs: ['https://localhost/login/oauth2/code/oidc']
+
+  # ---- Read-only access to assess --------------------------------------------------
+  # SecurityAudit is the AWS-maintained policy for exactly this job: read security-relevant
+  # configuration. ViewOnlyAccess adds the resource enumeration Drishti needs to know what
+  # exists. Neither grants any write, and neither grants read of object or database CONTENT —
+  # Drishti assesses configuration, not your data.
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${NamePrefix}-instance-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: tasks.apprunner.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+        - arn:aws:iam::aws:policy/job-function/ViewOnlyAccess
+      Policies:
+        # App Runner uses the instance role to resolve RuntimeEnvironmentSecrets, so the
+        # role needs to read exactly one secret — its own database password — and nothing
+        # else. Neither managed policy above grants Secrets Manager read.
+        - PolicyName: drishti-read-own-db-secret
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref DbSecret
+
+  AccessRole:
+    Type: AWS::IAM::Role
+    Condition: PrivateEcr
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: build.apprunner.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+
+  VpcConnector:
+    Type: AWS::AppRunner::VpcConnector
+    Properties:
+      VpcConnectorName: !Sub '${NamePrefix}-connector'
+      Subnets: [!Ref SubnetA, !Ref SubnetB]
+      SecurityGroups: [!GetAtt AppSecurityGroup.GroupId]
+
+  Service:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: !Sub '${NamePrefix}-app'
+      SourceConfiguration:
+        # A private-ECR pull needs an access role; ECR Public does not.
+        AuthenticationConfiguration:
+          AccessRoleArn: !If [PrivateEcr, !GetAtt AccessRole.Arn, !Ref 'AWS::NoValue']
+        AutoDeploymentsEnabled: false
+        ImageRepository:
+          ImageIdentifier: !Ref ContainerImage
+          ImageRepositoryType: !Ref ImageRepositoryType
+          ImageConfiguration:
+            Port: '8080'
+            RuntimeEnvironmentSecrets:
+              - { Name: DRISHTI_DB_PASSWORD, Value: !Ref DbSecret }
+            RuntimeEnvironmentVariables:
+              - { Name: DRISHTI_DB_URL, Value: !Sub 'jdbc:postgresql://${Database.Endpoint.Address}:5432/drishti' }
+              - { Name: DRISHTI_DB_USER, Value: drishtiadmin }
+              - { Name: DRISHTI_OIDC_ISSUER, Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}' }
+              - { Name: DRISHTI_OIDC_CLIENT_ID, Value: !Ref UserPoolClient }
+              # The Cognito app client is confidential (GenerateSecret: true), so the server-side
+              # authorization-code -> token exchange must authenticate with the client secret.
+              # Without it, sign-in fails at the token step even though the login page is fine.
+              - { Name: DRISHTI_OIDC_CLIENT_SECRET, Value: !GetAtt UserPoolClient.ClientSecret }
+              # So the console can show which role it runs as, and print a correct
+              # put-role-policy command when an operator wants to widen its reach.
+              - { Name: DRISHTI_ROLE_NAME, Value: !Sub '${NamePrefix}-instance-role' }
+              - { Name: AWS_REGION, Value: !Ref 'AWS::Region' }
+      InstanceConfiguration:
+        Cpu: 1 vCPU
+        Memory: 2 GB
+        InstanceRoleArn: !GetAtt InstanceRole.Arn
+      NetworkConfiguration:
+        EgressConfiguration:
+          EgressType: VPC
+          VpcConnectorArn: !GetAtt VpcConnector.VpcConnectorArn
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: /actuator/health
+        Interval: 20
+        Timeout: 5
+        # A cold JVM plus Flyway migration plus OIDC discovery takes longer than the
+        # default threshold allows; a stricter setting fails a perfectly healthy start.
+        UnhealthyThreshold: 5
+        HealthyThreshold: 1
+
+Outputs:
+  AppUrl:
+    Description: Drishti URL
+    Value: !Sub 'https://${Service.ServiceUrl}'
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  CognitoDomain:
+    Value: !Sub 'https://${NamePrefix}-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com'
+  DatabaseEndpoint:
+    Value: !GetAtt Database.Endpoint.Address
+  InstanceRoleName:
+    Description: The read-only role Drishti runs as
+    Value: !Ref InstanceRole

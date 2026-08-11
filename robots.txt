@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://drishti.run/sitemap.xml
