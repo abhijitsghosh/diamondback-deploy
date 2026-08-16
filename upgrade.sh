@@ -47,7 +47,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -r|--region)    REGION="${2:-}"; shift 2;;
     -s|--stack)     STACK="${2:-}"; shift 2;;
-    -t|--image-tag) TAG="${2:-}"; shift 2;;
+    -t|--image-tag) TAG="${2:-}"; EXPLICIT_TAG=1; shift 2;;
     -h|--help) echo "Usage: upgrade.sh --region <aws-region> [--stack diamondback] [--image-tag <ver>]"; exit 0;;
     *) echo "Unknown option: $1"; exit 1;;
   esac
@@ -72,6 +72,13 @@ echo "▶ Current image: $CURRENT"
 echo "▶ Target image:  ${IMAGE_REPO}:${TAG}"
 if [[ "$CURRENT" == "${IMAGE_REPO}:${TAG}" ]]; then
   echo "✅ Already on ${TAG} — nothing to do."
+  # The feed can lag a release: the GitHub mirror is CDN-cached for a few minutes, and
+  # if the version feed was never bumped it will pin you to the previous version
+  # indefinitely. Say so, rather than letting "nothing to do" look like "up to date".
+  if [[ -z "${EXPLICIT_TAG:-}" ]]; then
+    echo "   (version resolved from the published feed. If you expected a newer release,"
+    echo "    the feed may be stale or cached — pass --image-tag <ver> to override.)"
+  fi
   exit 0
 fi
 
