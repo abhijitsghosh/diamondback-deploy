@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Drishti in-place upgrade — safe, image-only roll.
+# Diamondback in-place upgrade — safe, image-only roll.
 #
-#   curl -sL https://drishti.run/upgrade.sh | bash -s -- --region ap-southeast-2
-#   curl -sL https://drishti.run/upgrade.sh | bash -s -- --region ap-southeast-2 --image-tag 0.2.0
+#   curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
+#   curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2 --image-tag 0.2.0
 #
 # Rolls ONLY the App Runner service's image to the target version. The RDS instance is
 # untouched, and the app runs its Flyway migrations on boot — so code AND schema upgrade
@@ -16,14 +16,14 @@
 set -euo pipefail
 
 REGION=""
-STACK="drishti"
-IMAGE_REPO="public.ecr.aws/w4o8p5x9/drishti"
+STACK="diamondback"
+IMAGE_REPO="public.ecr.aws/w4o8p5x9/diamondback"
 TAG=""
-# Version feed. drishti.run is the single source of truth (served fresh); the GitHub
+# Version feed. diamondback.run is the single source of truth (served fresh); the GitHub
 # mirror is a fallback if the domain is unreachable.
 VERSION_URLS=(
-  "https://drishti.run/version.json"
-  "https://raw.githubusercontent.com/abhijitsghosh/drishti-deploy/main/version.json"
+  "https://diamondback.run/version.json"
+  "https://raw.githubusercontent.com/abhijitsghosh/diamondback-deploy/main/version.json"
 )
 
 # Ask EVERY feed and take the highest version. The feeds mirror the same release, so if
@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]]; do
     -r|--region)    REGION="${2:-}"; shift 2;;
     -s|--stack)     STACK="${2:-}"; shift 2;;
     -t|--image-tag) TAG="${2:-}"; shift 2;;
-    -h|--help) echo "Usage: upgrade.sh --region <aws-region> [--stack drishti] [--image-tag <ver>]"; exit 0;;
+    -h|--help) echo "Usage: upgrade.sh --region <aws-region> [--stack diamondback] [--image-tag <ver>]"; exit 0;;
     *) echo "Unknown option: $1"; exit 1;;
   esac
 done
@@ -102,7 +102,7 @@ URL=$(aws apprunner describe-service --region "$REGION" --service-arn "$ARN" \
         --query 'Service.ServiceUrl' --output text)
 cat <<EOF
 
-✅ Drishti upgraded to ${TAG}.
+✅ Diamondback upgraded to ${TAG}.
 
    Open: https://${URL}
    Your attestations, decisions and report branding are intact — the schema migrates on boot.

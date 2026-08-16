@@ -1,6 +1,6 @@
-# drishti-deploy
+# diamondback-deploy
 
-Public install assets and site for **[Drishti](https://drishti.run)** — a read-only
+Public install assets and site for **[Diamondback](https://diamondback.run)** — a read-only
 AWS ISM PROTECTED posture reporter and best-practice hardening scanner that deploys
 into your own AWS account.
 
@@ -11,27 +11,27 @@ stack before running anything.
 |---|---|
 | `install.sh` | One-shot installer, written for AWS CloudShell |
 | `upgrade.sh` | Image-only in-place upgrade; the database is untouched |
-| `drishti-aws.yaml` | The CloudFormation stack the installer deploys |
+| `diamondback-aws.yaml` | The CloudFormation stack the installer deploys |
 | `version.json` | The published version feed the upgrade script and the console read |
-| `index.html`, `docs.html` | The drishti.run site (Cloudflare Pages) |
+| `index.html`, `docs.html` | The diamondback.run site (Cloudflare Pages) |
 
 ## Install
 
 ```bash
-curl -sL https://drishti.run/install.sh | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au
+curl -sL https://diamondback.run/install.sh | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au
 ```
 
-Until `drishti.run` resolves, this repository is the mirror the installer already falls
+Until `diamondback.run` resolves, this repository is the mirror the installer already falls
 back to, so it works today:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/abhijitsghosh/drishti-deploy/main/install.sh \
+curl -sL https://raw.githubusercontent.com/abhijitsghosh/diamondback-deploy/main/install.sh \
   | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au
 ```
 
 The service's role is granted `SecurityAudit` and `ViewOnlyAccess` and nothing more.
-Drishti reads configuration to assess it; it never writes to your account, and it
+Diamondback reads configuration to assess it; it never writes to your account, and it
 never reads the contents of your objects or databases.
 
 The application source is private and commercially licensed. It is available to
-security teams for review on request — security@drishti.run.
+security teams for review on request — security@diamondback.run.

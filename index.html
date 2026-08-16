@@ -3,31 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Drishti — the read-only eye on your AWS ISM PROTECTED posture</title>
-<meta name="description" content="Drishti makes it easy to get your AWS account ISM PROTECTED compliant, and secures it pragmatically with CIS AWS, AWS FSBP and NIST 800-53 — with continuous compliance. Read-only, deploys into your own account.">
-<link rel="canonical" href="https://drishti.run/">
+<title>Diamondback — the read-only eye on your AWS ISM PROTECTED posture</title>
+<meta name="description" content="Diamondback evidences FedRAMP's 2026 Key Security Indicators from live AWS configuration, tracks the 246 requirements and the dates they bind, and hardens against CIS AWS, FSBP and NIST 800-53. Read-only, deployed in your own account.">
+<link rel="canonical" href="https://diamondback.run/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#05080a">
-<meta name="author" content="Drishti">
-<meta property="og:locale" content="en_AU">
-<meta name="keywords" content="AWS ISM PROTECTED, ISM compliance, ACSC Essential Eight, IRAP, AWS security posture, AWS Security Hub, CIS AWS Foundations, AWS Foundational Security Best Practices, NIST 800-53, read-only AWS scanner">
+<meta name="theme-color" content="#0a0806">
+<meta name="author" content="Diamondback">
+<meta property="og:locale" content="en_US">
+<meta name="keywords" content="FedRAMP 20x, FedRAMP Key Security Indicators, KSI evidence, FedRAMP Consolidated Rules 2026, CISA BOD 26-04, continuous monitoring, AWS security posture, CIS AWS Foundations, AWS Foundational Security Best Practices, NIST 800-53, read-only AWS scanner, 3PAO evidence">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Drishti">
-<meta property="og:title" content="Drishti — read-only AWS ISM PROTECTED posture & hardening">
-<meta property="og:description" content="Get your AWS account ISM PROTECTED compliant and pragmatically hardened — read-only, in your own account, with a merged evidence report.">
-<meta property="og:url" content="https://drishti.run/">
+<meta property="og:site_name" content="Diamondback">
+<meta property="og:title" content="Diamondback — read-only FedRAMP evidence from your own AWS account">
+<meta property="og:description" content="Evidence FedRAMP's 2026 Key Security Indicators from live AWS configuration, and see which of the 246 requirements bind you and when.">
+<meta property="og:url" content="https://diamondback.run/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Drishti — read-only AWS ISM PROTECTED posture & hardening">
-<meta name="twitter:description" content="Get your AWS account ISM PROTECTED compliant and pragmatically hardened — read-only, in your own account.">
+<meta name="twitter:title" content="Diamondback — read-only FedRAMP evidence from your own AWS account">
+<meta name="twitter:description" content="FedRAMP 2026 KSI evidence and the requirements register, straight from your own AWS account. Read-only.">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Drishti","applicationCategory":"SecurityApplication","operatingSystem":"Amazon Web Services","description":"Read-only AWS ISM PROTECTED posture reporter and best-practice hardening scanner. Assess against the Australian Government ISM, attest and decide on controls, and export a merged evidence report.","offers":{"@type":"Offer","url":"mailto:sales@drishti.run","price":"100","priceCurrency":"AUD","priceSpecification":{"@type":"UnitPriceSpecification","price":"100","priceCurrency":"AUD","unitText":"per install","billingIncrement":1,"billingDuration":1,"unitCode":"MON"},"availability":"https://schema.org/InStock"},"url":"https://drishti.run/","publisher":{"@type":"Organization","name":"Drishti"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Diamondback","applicationCategory":"SecurityApplication","operatingSystem":"Amazon Web Services","description":"Read-only AWS posture tool that evidences FedRAMP 2026 Key Security Indicators from live configuration, carries the FedRAMP requirements register with its binding dates, and hardens against CIS AWS, FSBP and NIST 800-53.","offers":{"@type":"Offer","url":"mailto:sales@diamondback.run","price":"100","priceCurrency":"USD","priceSpecification":{"@type":"UnitPriceSpecification","price":"100","priceCurrency":"USD","unitText":"per install","billingIncrement":1,"billingDuration":1,"unitCode":"MON"},"availability":"https://schema.org/InStock"},"url":"https://diamondback.run/","publisher":{"@type":"Organization","name":"Diamondback"}}
 </script>
 <style>
   :root{
-    --bg:#04070a; --bg2:#080d0f; --panel:#080e11; --line:#132025;
-    --fg:#c9d5d2; --dim:#6d7f7c; --acc:#00e5a0; --cyan:#22d3ee; --mag:#ff3d81; --amber:#ffb454;
-    --edge:#33454b;
+    /* Canyon rock, dorsal ochre, and the amber eye. The storm sky stands in for
+       anything uncertain; nothing here is neon, because the product is not. */
+    --bg:#0a0806; --bg2:#100c09; --panel:#12100c; --line:#2b2118;
+    --fg:#e6dccb; --dim:#9a8d78; --acc:#f59320; --cyan:#b8874a; --mag:#d2452f; --amber:#e0b050;
+    --edge:#4a3b2a;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -37,9 +39,9 @@
   a{color:var(--acc);text-decoration:none}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
     background:
-      linear-gradient(transparent 96%,rgba(0,229,160,.05) 100%) 0 0/100% 3px,
-      linear-gradient(90deg,rgba(0,229,160,.035) 1px,transparent 1px) 0 0/44px 44px,
-      linear-gradient(rgba(0,229,160,.035) 1px,transparent 1px) 0 0/44px 44px;
+      linear-gradient(transparent 96%,rgba(184,135,74,.045) 100%) 0 0/100% 3px,
+      linear-gradient(90deg,rgba(184,135,74,.03) 1px,transparent 1px) 0 0/44px 44px,
+      linear-gradient(rgba(184,135,74,.03) 1px,transparent 1px) 0 0/44px 44px;
     mix-blend-mode:screen;opacity:.5}
   .wrap{max-width:1040px;margin:0 auto;padding:0 22px;position:relative;z-index:2}
   header{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
@@ -48,11 +50,47 @@
   nav a{color:var(--dim);margin-left:20px;font-size:13px;letter-spacing:.5px}
   nav a:hover{color:var(--acc)}
 
-  .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:30px;align-items:center;padding:34px 0 30px}
+  /* Full-bleed hero. The photograph carries it when present; underneath sits a
+     generated canyon — gradient rock, ember horizon, and two eyes in the dark — so
+     the section is menacing on its own and simply sharpens when the image loads. */
+  .hero{position:relative;min-height:76vh;display:flex;align-items:center;
+        padding:60px 0 70px;isolation:isolate}
+  /* Break out of the content column: the desert should run edge to edge. */
+  .hero-art{position:absolute;top:0;bottom:0;left:50%;width:100vw;margin-left:-50vw;
+    z-index:-2;overflow:hidden;
+    background-image:url("img/hero.jpg"),
+      radial-gradient(120% 90% at 62% 42%, #3a2410 0%, #1a1108 38%, #0c0906 72%, #070504 100%);
+    background-size:cover,cover;
+    /* The head is centre-frame, so bias the crop right and let it face the copy. */
+    /* Push the head into the right third so it clears the copy and is actually seen. */
+    background-position:76% 44%,center;background-repeat:no-repeat;
+    filter:brightness(1.22) contrast(1.06) saturate(1.06);
+    animation:creep 26s ease-in-out infinite alternate}
+  /* A slow push-in: the thing is closer than it was a moment ago. */
+  @keyframes creep{from{transform:scale(1)}to{transform:scale(1.07)}}
+  @media (prefers-reduced-motion:reduce){.hero-art{animation:none}}
+  /* Readability wash: heavy on the left where the words are, clear on the right. */
+  .hero-art::after{content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(90deg, rgba(8,6,5,.97) 0%, rgba(8,6,5,.94) 26%, rgba(8,6,5,.66) 42%, rgba(8,6,5,.22) 58%, rgba(8,6,5,.04) 76%, rgba(8,6,5,0) 100%),
+      linear-gradient(180deg, rgba(8,6,5,.85) 0%, rgba(8,6,5,0) 22%, rgba(8,6,5,0) 62%, var(--bg) 100%),
+      radial-gradient(135% 105% at 62% 44%, transparent 48%, rgba(4,3,2,.62) 100%)}
+  /* The scale lattice, barely there — texture rather than pattern. */
+  .hero-art::before{content:"";position:absolute;inset:0;opacity:.05;
+    background-image:
+      linear-gradient(135deg, rgba(184,135,74,.9) 1px, transparent 1px),
+      linear-gradient(225deg, rgba(184,135,74,.9) 1px, transparent 1px);
+    background-size:26px 26px,26px 26px}
+  .hero-copy{max-width:640px}
+  @media(max-width:760px){
+    .hero{min-height:auto;padding:40px 0 44px}
+    .hero-art{background-position:center}
+    .hero-art::after{background:linear-gradient(180deg,rgba(8,6,5,.88),rgba(8,6,5,.94) 55%,var(--bg) 100%)}
+  }
   .hero h1{font-size:42px;line-height:1.05;margin:0 0 14px;letter-spacing:-.5px}
   .hero h1 span{color:var(--acc)}
   .tag{color:var(--dim);font-size:16px;max-width:38ch}
-  .cli{margin-top:24px;background:#050a0b;border:1px solid var(--line);border-radius:8px;padding:14px 16px;position:relative}
+  .cli{margin-top:24px;background:#0b0806;border:1px solid var(--line);border-radius:8px;padding:14px 16px;position:relative}
   .cli .lbl{position:absolute;top:-9px;left:12px;background:var(--bg);padding:0 6px;font-size:10px;letter-spacing:1.5px;color:var(--dim)}
   .cli code{color:var(--acc);font-size:14px}
   .cli-copy{position:absolute;top:-9px;right:12px;background:var(--bg);border:1px solid var(--line);color:var(--dim);
@@ -63,20 +101,20 @@
   @keyframes blink{50%{opacity:0}}
   .btns{margin-top:22px}
   .btn{display:inline-block;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:9px 16px;font-size:13px;letter-spacing:.5px;margin-right:10px}
-  .btn.solid{background:var(--acc);color:#04120d;font-weight:600}
+  .btn.solid{background:var(--acc);color:#140d03;font-weight:600}
 
-  .price{border:1px solid var(--acc);border-radius:12px;background:linear-gradient(180deg,#0a1310,#060a0b);padding:26px}
+  .price{border:1px solid var(--acc);border-radius:12px;background:linear-gradient(180deg,#181209,#0d0a07);padding:26px}
   .price-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
     border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:18px}
   .price .amount{font-size:40px;font-weight:700;line-height:1;color:var(--acc)}
   .price .amount .per{font-size:15px;font-weight:400;color:var(--dim)}
   .price .unit{color:var(--dim);font-size:13.5px;margin-top:6px}
   .price-head .btn{margin:0}
-  .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;font-size:13.5px;color:#b7c4c1}
+  .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;font-size:13.5px;color:#c9bda8}
   .price-grid b{color:var(--acc)}
   .price-note{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);color:var(--dim);font-size:12.5px}
   .price-note b{color:var(--fg)}
-  .value{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#0a1310,#060a0b);padding:26px;margin:6px 0 8px}
+  .value{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#181209,#0d0a07);padding:26px;margin:6px 0 8px}
   .value .head{font-size:22px;line-height:1.35;margin:0 0 18px;max-width:70ch}
   .value .head b{color:var(--acc)}
   .value .head i{color:var(--cyan);font-style:normal}
@@ -85,148 +123,61 @@
   .vp .p .k{color:var(--acc);font-size:12px;letter-spacing:1px;text-transform:uppercase}
   .vp .p p{margin:4px 0 0;color:var(--dim);font-size:13.5px}
 
-  /* ===== cyberpunk PPI radar with phosphor fade ===== */
-  .radar-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:440px}
-  .reticle{position:absolute;inset:6% 8%;z-index:4;pointer-events:none;animation:retpulse 2.6s ease-in-out infinite}
-  .reticle span{position:absolute;width:22px;height:22px}
-  .reticle .tl{top:0;left:0;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-  .reticle .tr{top:0;right:0;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-  .reticle .bl{bottom:0;left:0;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-  .reticle .br{bottom:0;right:0;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-  @keyframes retpulse{0%,100%{opacity:.3}50%{opacity:.8}}
 
-  .radar{position:relative;width:100%;max-width:380px;aspect-ratio:1;border-radius:50%;overflow:hidden;
-    background:radial-gradient(circle at 50% 46%,#043a2a 0%,#031a13 46%,#010a08 100%);
-    border:1px solid rgba(0,229,160,.35);
-    box-shadow:0 0 44px rgba(0,229,160,.14),inset 0 0 70px rgba(0,229,160,.10),inset 0 0 0 6px rgba(0,229,160,.05)}
-  .radar .rings{position:absolute;inset:0;border-radius:50%;
-    background:repeating-radial-gradient(circle at 50% 50%,transparent 0 42px,rgba(0,229,160,.13) 42px 43px)}
-  .radar .cross::before,.radar .cross::after{content:"";position:absolute;background:rgba(0,229,160,.14)}
-  .radar .cross::before{left:0;right:0;top:50%;height:1px}
-  .radar .cross::after{top:0;bottom:0;left:50%;width:1px}
-  .radar .ticks{position:absolute;inset:0;border-radius:50%;
-    background:repeating-conic-gradient(from 0deg,rgba(0,229,160,.5) 0deg .5deg,transparent .5deg 6deg);
-    -webkit-mask:radial-gradient(circle,transparent 0 45%,#000 45.5% 49%,transparent 49.6%);
-            mask:radial-gradient(circle,transparent 0 45%,#000 45.5% 49%,transparent 49.6%)}
-  .radar .ticks.card{background:repeating-conic-gradient(from 0deg,rgba(0,229,160,.85) 0deg 1.4deg,transparent 1.4deg 90deg);
-    -webkit-mask:radial-gradient(circle,transparent 0 41%,#000 41.5% 49%,transparent 49.6%);
-            mask:radial-gradient(circle,transparent 0 41%,#000 41.5% 49%,transparent 49.6%)}
-  /* the phosphor sweep: bright leading edge fading into an afterglow trail */
-  .radar .sweep{position:absolute;inset:0;border-radius:50%;animation:sweep 4s linear infinite;
-    background:conic-gradient(from 0deg,
-      rgba(0,229,160,0) 0deg,rgba(0,229,160,0) 292deg,
-      rgba(0,229,160,.05) 316deg,rgba(0,229,160,.16) 340deg,
-      rgba(0,229,160,.42) 356deg,rgba(0,229,160,.85) 360deg)}
-  .radar .sweep::after{content:"";position:absolute;top:0;left:50%;width:2px;height:50%;transform:translateX(-50%);
-    background:linear-gradient(rgba(0,229,160,.95),rgba(0,229,160,0));box-shadow:0 0 8px rgba(0,229,160,.7)}
-  @keyframes sweep{to{transform:rotate(360deg)}}
-  .radar .blip{position:absolute;width:9px;height:9px;border-radius:50%;background:#d9fff2;
-    transform:translate(-50%,-50%);box-shadow:0 0 12px 3px rgba(0,229,160,.85);
-    animation:blip 4s linear infinite;opacity:.06}
-  @keyframes blip{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}
-    9%{opacity:.95}55%{opacity:.14;transform:translate(-50%,-50%) scale(1)}100%{opacity:.05}}
-  .radar .center{position:absolute;top:50%;left:50%;width:8px;height:8px;border-radius:50%;background:var(--acc);
-    transform:translate(-50%,-50%);box-shadow:0 0 12px var(--acc);z-index:3}
-  .radar .glass{position:absolute;inset:0;border-radius:50%;pointer-events:none;
-    background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.05),transparent 42%)}
-  .radar .lbl{position:absolute;color:var(--dim);font:11px "SF Mono",monospace;letter-spacing:1px;z-index:3}
-
-  .hud{position:absolute;bottom:2px;left:0;right:0;text-align:center;z-index:4}
-  .hud .scanning{color:var(--acc);letter-spacing:4px;font-size:12px}
-  .hud .scanning b{animation:blink 1s steps(1) infinite}
-  .hud .read{color:var(--dim);font-size:11px;margin-top:3px;min-height:14px}
-
-  section{padding:48px 0;border-top:1px solid var(--line)}
-  h2{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin:0 0 20px}
-  h2::before{content:"// "}
-  .lead{font-size:20px;max-width:60ch;margin:0 0 10px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:22px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px}
-  .card h3{margin:0 0 8px;font-size:15px;color:var(--fg)}
-  .card p{margin:0;color:var(--dim);font-size:13.5px}
-  .card .k{color:var(--cyan);font-size:11px;letter-spacing:1px;text-transform:uppercase}
-  ul.clean{list-style:none;padding:0;margin:16px 0 0}
-  ul.clean li{padding:8px 0;border-bottom:1px solid var(--line);color:var(--dim)}
-  ul.clean li b{color:var(--fg)}
   .chips{margin-top:18px}
   .chip{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:5px 12px;margin:4px 6px 4px 0;font-size:12px;color:var(--fg)}
   .chip .v{color:var(--dim)}
-  .audit{background:linear-gradient(180deg,#0a1310,#080c0d);border:1px solid var(--acc);border-radius:10px;padding:22px}
+  .audit{background:linear-gradient(180deg,#181209,#0d0a07);border:1px solid var(--acc);border-radius:10px;padding:22px}
   .audit b{color:var(--acc)}
   .disc{color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);padding:26px 0;line-height:1.7}
   footer{color:var(--dim);font-size:12px;padding:26px 0 50px;text-align:center}
-  @media(max-width:760px){.hero{grid-template-columns:1fr}.hero h1{font-size:32px}.radar-stage{min-height:380px}}
+  @media(max-width:760px){.hero h1{font-size:32px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">&gt;_ <span class="eye">DRISHTI</span></div>
+    <div class="brand">&#9670; <span class="eye">DIAMONDBACK</span></div>
     <nav>
-      <a href="#value">Why</a><a href="#what">What</a><a href="#how">How</a>
+      <a href="#value">Why</a><a href="#what">What</a><a href="#honesty">Honesty</a><a href="#how">How</a>
       <a href="#pricing">Pricing</a><a href="#about">About</a><a href="docs.html">Docs</a><a href="#requirements">Install</a>
     </nav>
   </header>
 
   <div class="hero">
-    <div>
-      <h1>The read-only <span>eye</span> on your AWS ISM&nbsp;PROTECTED posture.</h1>
-      <p class="tag">Compliance the manual way is slow, consultant-heavy, and stale by the next quarterly ISM update. Drishti changes that.</p>
+    <div class="hero-art" aria-hidden="true"></div>
+    <div class="hero-copy">
+
+      <h1>Read-only <span>FedRAMP</span> evidence, straight from your AWS account.</h1>
+      <p class="tag">FedRAMP's 2026 rules replaced the baselines with 46 Key Security Indicators and 246 requirements on fixed dates. Diamondback shows which you can evidence from live configuration today, and which deadlines are closing.</p>
       <div class="cli" id="install">
         <span class="lbl">AWS CLOUDSHELL</span>
         <button class="cli-copy" onclick="copyCmd(this)">COPY</button>
-        <code class="mono">curl -sL https://drishti.run/install.sh | bash -s -- --region ap-southeast-2<span class="cur"></span></code>
+        <code class="mono">curl -sL https://diamondback.run/install.sh | bash -s -- --region us-east-1<span class="cur"></span></code>
       </div>
       <div class="btns">
         <a class="btn solid" href="https://console.aws.amazon.com/cloudshell" target="_blank" rel="noopener">▶ Open AWS CloudShell</a>
-        <a class="btn" href="mailto:sales@drishti.run">Subscribe</a>
+        <a class="btn" href="mailto:sales@diamondback.run">Subscribe</a>
         <a class="btn" href="docs.html">Read the docs</a>
       </div>
       <div class="cli-note">CloudShell opens in a new tab — copy the command above and paste it in. It can't auto-run for you.</div>
     </div>
-
-    <div class="radar-stage">
-      <div class="reticle"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
-      <div class="radar">
-        <div class="rings"></div>
-        <div class="cross"></div>
-        <div class="ticks"></div>
-        <div class="ticks card"></div>
-        <span class="blip" style="left:71%;top:26%;animation-delay:-0.44s"></span>
-        <span class="blip" style="left:72%;top:58%;animation-delay:-1.22s"></span>
-        <span class="blip" style="left:38%;top:84%;animation-delay:-2.22s"></span>
-        <span class="blip" style="left:31%;top:43%;animation-delay:-3.22s"></span>
-        <span class="blip" style="left:35%;top:24%;animation-delay:-3.66s"></span>
-        <span class="blip" style="left:60%;top:70%;animation-delay:-1.90s"></span>
-        <div class="sweep"></div>
-        <div class="center"></div>
-        <div class="glass"></div>
-        <span class="lbl" style="top:6px;left:50%;transform:translateX(-50%)">N</span>
-        <span class="lbl" style="right:10px;top:50%;transform:translateY(-50%)">E</span>
-        <span class="lbl" style="bottom:6px;left:50%;transform:translateX(-50%)">S</span>
-        <span class="lbl" style="left:10px;top:50%;transform:translateY(-50%)">W</span>
-      </div>
-      <div class="hud">
-        <div class="scanning mono">CONTINUOUS SCAN<b>_</b></div>
-        <div class="read mono" id="readout"></div>
-      </div>
-    </div>
   </div>
 
   <div class="value" id="value">
-    <p class="head">Drishti makes it easy to get your AWS account <b>ISM PROTECTED compliant</b> — and secures it pragmatically with the standards you're assessed against, kept <i>continuously compliant</i>.</p>
+    <p class="head">Diamondback turns live AWS configuration into <b>FedRAMP evidence</b> — and says plainly which indicators it <i>cannot</i> speak to.</p>
     <div class="vp">
-      <div class="p"><div class="k">Compliant, fast</div><p>ISM PROTECTED posture mapped to ASD's own controls — not a months-long consultant spreadsheet marathon.</p></div>
-      <div class="p"><div class="k">Secured pragmatically</div><p>Hardened against real standards: CIS AWS Foundations, AWS FSBP and NIST 800-53 — free from our own checks, no Security Hub bill required.</p></div>
-      <div class="p"><div class="k">Continuous compliance</div><p>Re-scan any time. Posture stays current as your account changes and the ISM updates each quarter.</p></div>
+      <div class="p"><div class="k">Evidence, not assertions</div><p>19 of FedRAMP's 46 Key Security Indicators, evidenced from real configuration and joined to each indicator through the NIST controls it names — not a mapping drawn by hand.</p></div>
+      <div class="p"><div class="k">Deadlines that bind you</div><p>246 requirements, filtered to your certification type, path and class. VDR and VER bind on 7 December 2026 under CISA BOD 26-04, and the register leads with what is closing.</p></div>
+      <div class="p"><div class="k">Hardened pragmatically</div><p>CIS AWS Foundations, AWS FSBP and NIST 800-53 from our own checks — no Security Hub subscription, no per-finding bill.</p></div>
     </div>
   </div>
 </div>
 
 <div class="wrap">
   <section id="what">
-    <h2>What Drishti sees</h2>
-    <p class="lead">One read-only pass over your account — every enabled region — mapped to the controls your assessor actually asks for. Everything it can't prove, it says so, plainly.</p>
+    <h2>What Diamondback sees</h2>
+    <p class="lead">One read-only pass over your account — every enabled region — turned into evidence against FedRAMP's indicators. Everything it can't prove, it says so, plainly.</p>
     <ul class="clean">
       <li><b>Infrastructure</b> — S3, EBS, RDS, EFS, security groups, VPCs, CloudTrail, KMS, ELB, Backup <span class="mono" style="float:right;color:var(--acc)">▮ live</span></li>
       <li><b>Identity</b> — IAM users, MFA, credential age, password policy, root posture <span class="mono" style="float:right;color:var(--acc)">▮ live</span></li>
@@ -241,7 +192,7 @@
     <div class="cards">
       <div class="card"><h3>In your account</h3><p>One CloudFormation stack in your own AWS account — App Runner, RDS, Cognito. Your configuration never leaves it.</p></div>
       <div class="card"><h3>Read-only by construction</h3><p><span class="mono">SecurityAudit</span> + <span class="mono">ViewOnlyAccess</span> and nothing else. Every call is a describe, list or get — checkable in source, and refused by IAM if it weren't.</p></div>
-      <div class="card"><h3>Asks, explained</h3><p>When a check needs a service you haven't enabled, Drishti says which, why, what it unlocks, and the exact <span class="mono">aws</span> command — including what it will cost you.</p></div>
+      <div class="card"><h3>Asks, explained</h3><p>When a check needs a service you haven't enabled, Diamondback says which, why, what it unlocks, and the exact <span class="mono">aws</span> command — including what it will cost you.</p></div>
       <div class="card"><h3>Obvious identity</h3><p>The console reads its own role back from IAM and shows you the policies attached — not a claim in a brochure, a live check.</p></div>
     </div>
   </section>
@@ -252,27 +203,39 @@
     <div class="cli">
       <span class="lbl">AWS CLOUDSHELL</span>
       <button class="cli-copy" onclick="copyCmd(this)">COPY</button>
-      <code class="mono">curl -sL https://drishti.run/install.sh | bash -s -- --region ap-southeast-2</code>
+      <code class="mono">curl -sL https://diamondback.run/install.sh | bash -s -- --region us-east-1</code>
     </div>
     <div class="btns"><a class="btn solid" href="https://console.aws.amazon.com/cloudshell" target="_blank" rel="noopener">▶ Open AWS CloudShell</a></div>
     <div class="cards" style="margin-top:20px">
-      <div class="card"><h3>AWS permissions</h3><p>Permission to create a CloudFormation stack containing IAM roles, RDS, Cognito, VPC and App Runner. The installer creates them and attaches Drishti's role read-only <span class="mono">SecurityAudit</span> + <span class="mono">ViewOnlyAccess</span>.</p></div>
+      <div class="card"><h3>AWS permissions</h3><p>Permission to create a CloudFormation stack containing IAM roles, RDS, Cognito, VPC and App Runner. The installer creates them and attaches Diamondback's role read-only <span class="mono">SecurityAudit</span> + <span class="mono">ViewOnlyAccess</span>.</p></div>
       <div class="card"><h3>Sign-in</h3><p>A Cognito user pool is created for you. Operators are invited by email — no self-registration, MFA available, and a 15-character password floor to match the ISM's own.</p></div>
-      <div class="card"><h3>AWS-authored evidence <span style="opacity:.6">(optional)</span></h3><p>Enable <b>Security Hub</b> and Drishti reads its failing CIS/FSBP controls as AWS-authored evidence. It is charged per check, so it stays your call — every control below is assessed without it.</p></div>
-      <div class="card"><h3>What Drishti ends up holding</h3><p>Two AWS managed read-only policies. No write path, no standing secret, and no access to the contents of your buckets or databases — it assesses configuration, not data. Teardown is one command.</p></div>
+      <div class="card"><h3>AWS-authored evidence <span style="opacity:.6">(optional)</span></h3><p>Enable <b>Security Hub</b> and Diamondback reads its failing CIS/FSBP controls as AWS-authored evidence. It is charged per check, so it stays your call — every control below is assessed without it.</p></div>
+      <div class="card"><h3>What Diamondback ends up holding</h3><p>Two AWS managed read-only policies. No write path, no standing secret, and no access to the contents of your buckets or databases — it assesses configuration, not data. Teardown is one command.</p></div>
+    </div>
+  </section>
+
+  <section id="honesty">
+    <h2>What it refuses to say</h2>
+    <p class="lead">The reason to trust a compliance tool is what it declines to claim.</p>
+    <div class="cards">
+      <div class="card"><h3>No indicator is "met"</h3><p>A KSI statement is broader than any check that informs it. Diamondback reports <i>evidence, currently clean</i> at the very most. Whether the indicator is met is a 3PAO's determination, and the status vocabulary has no word for it.</p></div>
+      <div class="card"><h3>Absence is never a pass</h3><p>No evidence is <i>not assessed</i>. A missing prerequisite is <i>no visibility</i>. A permission error is <i>no visibility</i> — never mistaken for "no resources exist".</p></div>
+      <div class="card"><h3>The 246 rules are not graded</h3><p>They are programme and process obligations — independent assessment, marketplace listing, change notification. Grading them from an AWS account would be nonsense, so Diamondback carries the register and the dates, and assesses none of it.</p></div>
+      <div class="card"><h3>Unscanned is not clean</h3><p>Before a scan has run, indicators show <i>unscanned</i> rather than clean, because clean would be an artefact of having no findings to show.</p></div>
     </div>
   </section>
 
   <section id="frameworks">
     <h2>Mapped to what you're assessed against</h2>
-    <p class="lead">One scan, every framework a finding touches — pinned to real benchmark versions.</p>
+    <p class="lead">One scan, every framework a finding touches — pinned to real published versions. FedRAMP leads; the Australian ISM is still carried in full for customers who need both.</p>
     <div class="chips">
-      <span class="chip">ISM <span class="v">PROTECTED (ASD OSCAL)</span></span>
+      <span class="chip">FedRAMP <span class="v">Consolidated Rules 2026</span></span>
+      <span class="chip">NIST <span class="v">SP 800-53 Rev. 5</span></span>
       <span class="chip">CIS AWS <span class="v">Foundations v3.0.0</span></span>
       <span class="chip">AWS FSBP <span class="v">v1.0.0</span></span>
-      <span class="chip">NIST <span class="v">SP 800-53 Rev. 5</span></span>
       <span class="chip">AWS <span class="v">Well-Architected, Security Pillar</span></span>
       <span class="chip">ACSC <span class="v">Essential Eight (Nov 2023)</span></span>
+      <span class="chip">ISM <span class="v">PROTECTED (ASD OSCAL)</span></span>
     </div>
   </section>
 
@@ -281,46 +244,46 @@
     <div class="price">
       <div class="price-head">
         <div>
-          <div class="amount">$100 <span class="per">AUD / month</span></div>
-          <div class="unit">per install — one Drishti deployment in your account</div>
+          <div class="amount">$100 <span class="per">USD / month</span></div>
+          <div class="unit">USD, per install — one Diamondback deployment in your account</div>
         </div>
-        <a class="btn solid" href="mailto:sales@drishti.run">Subscribe</a>
+        <a class="btn solid" href="mailto:sales@diamondback.run">Subscribe</a>
       </div>
       <div class="price-grid">
-        <div><b>Everything included.</b> No feature gates, no per-seat charge, no control limits. Every install gets the full 986-control ISM PROTECTED assessment, all five evidence planes (infrastructure, identity, email DNS, patch state and AWS-authored findings), the attestation and decision workspace, and the PDF, SSP and Annex artefacts.</div>
+        <div><b>Everything included.</b> No feature gates, no per-seat charge, no control limits. Every install gets the FedRAMP indicator coverage and requirements register, the full 986-control ISM assessment, all five evidence planes, the attestation and decision workspace, and the PDF, SSP and Annex artefacts.</div>
         <div><b>Unlimited regions and users.</b> One install scans every region enabled in the account, and everyone you invite to the Cognito pool can use it.</div>
-        <div><b>Updates included.</b> ASD revises the ISM; released updates carry the new catalog, and upgrading is one command that keeps your attestations and decisions.</div>
+        <div><b>Updates included.</b> FedRAMP revises the Consolidated Rules and ASD revises the ISM; released updates carry the new datasets, and upgrading is one command that keeps your attestations and decisions.</div>
         <div><b>Cancel any time.</b> Monthly, no lock-in. Uninstall is one command and leaves nothing behind.</div>
       </div>
       <div class="price-note">
-        <b>Plus your own AWS costs.</b> Drishti runs in <i>your</i> account, so you pay AWS directly for the infrastructure it uses — one App Runner service, a db.t4g.micro RDS Postgres, and a NAT gateway, typically <b>~$110–140 AUD/month</b> at current list prices (the NAT gateway is roughly a third of it). Nothing is billed through us, and you can tear it down whenever you like. Costs vary by region and usage; check the AWS pricing calculator for your own estimate.
+        <b>Plus your own AWS costs.</b> Diamondback runs in <i>your</i> account, so you pay AWS directly for the infrastructure it uses — one App Runner service, a db.t4g.micro RDS Postgres, and a NAT gateway, typically <b>~$70–95 USD/month</b> at current list prices (the NAT gateway is roughly a third of it). Nothing is billed through us, and you can tear it down whenever you like. Costs vary by region and usage; check the AWS pricing calculator for your own estimate.
       </div>
     </div>
   </section>
 
   <section id="about">
     <h2>Who's behind it</h2>
-    <p class="lead">Built by <b>Abhijit Ghosh</b> — nearly a decade in the Australian federal government, including several years at the Australian Cyber Security Centre (ACSC) and the Australian Signals Directorate (ASD).</p>
-    <p style="color:#b7c4c1;max-width:74ch">Drishti is the tool that assessment work kept calling for: the ISM turned into something you can run, read, and hand to an assessor — with the honest gaps shown, not a spreadsheet re-filled by hand every quarter. It reads only, holds nothing but two AWS read-only policies, and keeps your data in your own account.</p>
+    <p class="lead">Built by <b>Abhijit Ghosh</b> — nearly a decade in national-government cyber security, including several years at the Australian Cyber Security Centre (ACSC) and the Australian Signals Directorate (ASD), assessing cloud systems against exactly this kind of control framework.</p>
+    <p style="color:#c9bda8;max-width:74ch">Diamondback is the tool that assessment work kept calling for: a control framework turned into something you can run, read, and hand to an assessor — with the honest gaps shown, not a spreadsheet re-filled by hand each quarter. It reads only, holds nothing but two AWS read-only policies, and keeps your data in your own account.</p>
     <div class="disc" style="margin-top:18px">
-      <b>Independent and unaffiliated.</b> Drishti is an independent product. It is <b>not</b> endorsed by, affiliated with, sponsored by, or produced on behalf of the Australian Signals Directorate, the Australian Cyber Security Centre, or the Australian Government, and the author's prior public service does not imply any such endorsement. Drishti is built entirely from <b>publicly available information</b> — the published ISM and the public benchmarks it maps to — and contains no material derived from any position of employment. "ISM", "ACSC", "ASD", "Essential Eight" and "IRAP" are used nominatively to describe the frameworks assessed.
+      <b>Independent and unaffiliated.</b> Diamondback is an independent product. It is <b>not</b> endorsed by, affiliated with, sponsored by, or produced on behalf of the Australian Signals Directorate, the Australian Cyber Security Centre, or the Australian Government, and the author's prior public service does not imply any such endorsement. Diamondback is built entirely from <b>publicly available information</b> — the published ISM and the public benchmarks it maps to — and contains no material derived from any position of employment. "ISM", "ACSC", "ASD", "Essential Eight" and "IRAP" are used nominatively to describe the frameworks assessed.
     </div>
   </section>
 
   <section>
     <div class="audit">
       <h2 style="margin-bottom:12px">Security audits welcome</h2>
-      <p>Drishti is built to be approvable in an afternoon. The install templates are public, and the full source is available to security teams on request — read the code, verify there's no write path, watch it hold nothing but SecurityAudit and ViewOnlyAccess. Reach us at <b>security@drishti.run</b>.</p>
+      <p>Diamondback is built to be approvable in an afternoon. The install templates are public, and the full source is available to security teams on request — read the code, verify there's no write path, watch it hold nothing but SecurityAudit and ViewOnlyAccess. Reach us at <b>security@diamondback.run</b>.</p>
     </div>
   </section>
 
   <div class="disc">
-    <b>No warranty; no liability.</b> Drishti is provided "as is", without warranty of any kind, express or implied. To the maximum extent permitted by law, the authors and copyright holder accept no liability for any claim, loss or damage arising from its use. It is an assessment aid, not a guarantee of security or compliance; you remain responsible for your own compliance decisions and their verification.<br><br>
-    <b>Independence.</b> Drishti is an independent assessment aid. It is not endorsed by, affiliated with, or accredited by the Australian Signals Directorate, the ACSC, or the Australian Government. It reports observed posture against the ISM and public benchmarks; it does not grant accreditation or IRAP assessment. "ISM", "Essential Eight", "ACSC" and "IRAP" are used nominatively to describe the frameworks assessed. Framework control identifiers are curated references pinned to the versions shown and should be verified against the source benchmark.
+    <b>No warranty; no liability.</b> Diamondback is provided "as is", without warranty of any kind, express or implied. To the maximum extent permitted by law, the authors and copyright holder accept no liability for any claim, loss or damage arising from its use. It is an assessment aid, not a guarantee of security or compliance; you remain responsible for your own compliance decisions and their verification.<br><br>
+    <b>Independence.</b> Diamondback is an independent assessment aid. It is not endorsed by, affiliated with, accredited or recognised by FedRAMP, the GSA, CISA, any United States government body, the Australian Signals Directorate, the ACSC, or the Australian Government. It is <b>not</b> a 3PAO and performs no independent assessment. It reports observed configuration against published frameworks; it does not grant, confer or predict a FedRAMP authorisation, an IRAP assessment or any accreditation. Whether a Key Security Indicator is met is a determination for an assessor, never for this tool. "FedRAMP", "ISM", "Essential Eight", "ACSC" and "IRAP" are used nominatively to describe the frameworks referenced. Framework control identifiers are curated references pinned to the versions shown and should be verified against the source.
   </div>
 
   <footer>
-    &gt;_ DRISHTI · read-only AWS ISM PROTECTED posture · <a href="docs.html">docs</a> · <a href="mailto:sales@drishti.run">sales@drishti.run</a> · <a href="mailto:security@drishti.run">security@drishti.run</a>
+    &#9670; DIAMONDBACK · read-only FedRAMP evidence for AWS · <a href="docs.html">docs</a> · <a href="mailto:sales@diamondback.run">sales@diamondback.run</a> · <a href="mailto:security@diamondback.run">security@diamondback.run</a>
   </footer>
 </div>
 
@@ -331,18 +294,21 @@
     navigator.clipboard.writeText(text).then(()=>{ const t=btn.textContent; btn.textContent='COPIED'; setTimeout(()=>btn.textContent=t,1200); });
   }
   const lines = [
-    "s3:GetBucketEncryption · 41 buckets · ap-southeast-2",
-    "ism-1080 · data at rest · AACA encryption … EFFECTIVE",
-    "ism-1386 · 0.0.0.0/0 → tcp/3389 on sg-0a41 … INEFFECTIVE",
-    "_dmarc.example.gov.au · p=reject … EFFECTIVE",
-    "ssm:DescribeInstancePatchStates · 0 managed … NO VISIBILITY",
-    "CIS AWS 1.5 · root MFA … 1 affected",
+    "KSI-IAM-ELP · least privilege … evidence via ac-3, ac-6",
+    "KSI-MLA-OSM · SIEM capability … evidence via au-2, au-9, au-11",
+    "VDR-CSO-DET · binds 2026-12-07 · CISA BOD 26-04 · 115 days",
+    "s3:GetBucketEncryption · 41 buckets · us-east-1",
+    "KSI-SVC-SIN · securing information … evidence via sc-8, sc-28",
     "iam:ListMFADevices · 3 console users without MFA",
-    "986 PROTECTED controls · 5 evidence planes · continuous"
+    "ssm:DescribeInstancePatchStates · 0 managed … NO VISIBILITY",
+    "46 indicators · 246 requirements · continuous"
   ];
-  let i = 0; const el = document.getElementById('readout');
-  setInterval(() => { el.textContent = lines[i % lines.length]; i++; }, 1500);
-  el.textContent = lines[0];
+  const el = document.getElementById('readout');
+  if (el) {
+    let i = 0;
+    setInterval(() => { el.textContent = lines[i % lines.length]; i++; }, 1500);
+    el.textContent = lines[0];
+  }
 </script>
 </body>
 </html>

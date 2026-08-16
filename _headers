@@ -1,4 +1,4 @@
-# Cloudflare Pages headers for drishti.run
+# Cloudflare Pages headers for diamondback.run
 
 # Serve the installer/upgrade scripts as plain text so `curl | bash` and browser
 # viewing both get clean bytes (not a download or octet-stream).
@@ -16,5 +16,5 @@
 # The CloudFormation template is fetched by install.sh; serve it as plain text so a
 # browser shows it rather than downloading it — a customer should be able to read the
 # whole stack before running anything.
-/drishti-aws.yaml
+/diamondback-aws.yaml
   Content-Type: text/plain; charset=utf-8

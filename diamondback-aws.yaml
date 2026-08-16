@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Drishti — read-only AWS ISM PROTECTED posture reporting, deployed into the customer's own
+  Diamondback — read-only AWS ISM PROTECTED posture reporting, deployed into the customer's own
   AWS account. One App Runner service, one RDS Postgres holding attestations and decisions,
   one Cognito user pool for sign-in, and an instance role granted SecurityAudit and
-  ViewOnlyAccess and nothing more. Drishti reads configuration to assess it and never writes
+  ViewOnlyAccess and nothing more. Diamondback reads configuration to assess it and never writes
   to the account.
 
   App Runner rather than ECS behind a load balancer, deliberately: it provides a managed HTTPS
@@ -26,7 +26,7 @@ Parameters:
     Default: db.t4g.micro
   NamePrefix:
     Type: String
-    Default: drishti
+    Default: diamondback
 
 Conditions:
   PrivateEcr: !Equals [!Ref ImageRepositoryType, ECR]
@@ -137,19 +137,19 @@ Resources:
   DbSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: Drishti database subnets
+      DBSubnetGroupDescription: Diamondback database subnets
       SubnetIds: [!Ref SubnetA, !Ref SubnetB]
 
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Drishti App Runner VPC connector
+      GroupDescription: Diamondback App Runner VPC connector
       VpcId: !Ref Vpc
 
   DbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Drishti database - reachable only from the app
+      GroupDescription: Diamondback database - reachable only from the app
       VpcId: !Ref Vpc
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -166,7 +166,7 @@ Resources:
     Type: AWS::SecretsManager::Secret
     Properties:
       Name: !Sub '${NamePrefix}/db-password'
-      Description: Drishti database password, generated and held by Secrets Manager
+      Description: Diamondback database password, generated and held by Secrets Manager
       GenerateSecretString:
         PasswordLength: 40
         # RDS rejects '/', '@', '"' and space in a master password; excluding
@@ -175,7 +175,7 @@ Resources:
 
   # ---- Database -------------------------------------------------------------------
   # Attestations and operator decisions live here — the one thing a customer cannot
-  # regenerate by re-scanning. Encrypted at rest, because Drishti should pass its own checks.
+  # regenerate by re-scanning. Encrypted at rest, because Diamondback should pass its own checks.
   Database:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Snapshot
@@ -188,8 +188,8 @@ Resources:
       AllocatedStorage: '20'
       StorageType: gp3
       StorageEncrypted: true
-      DBName: drishti
-      MasterUsername: drishtiadmin
+      DBName: diamondback
+      MasterUsername: diamondbackadmin
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${DbSecret}:SecretString}}'
       DBSubnetGroupName: !Ref DbSubnetGroup
       VPCSecurityGroups: [!GetAtt DbSecurityGroup.GroupId]
@@ -228,8 +228,8 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref UserPool
-      ClientName: drishti
-      GenerateSecret: true               # Drishti is a confidential client
+      ClientName: diamondback
+      GenerateSecret: true               # Diamondback is a confidential client
       AllowedOAuthFlows: [code]
       AllowedOAuthScopes: [openid, profile, email]
       AllowedOAuthFlowsUserPoolClient: true
@@ -240,9 +240,9 @@ Resources:
 
   # ---- Read-only access to assess --------------------------------------------------
   # SecurityAudit is the AWS-maintained policy for exactly this job: read security-relevant
-  # configuration. ViewOnlyAccess adds the resource enumeration Drishti needs to know what
+  # configuration. ViewOnlyAccess adds the resource enumeration Diamondback needs to know what
   # exists. Neither grants any write, and neither grants read of object or database CONTENT —
-  # Drishti assesses configuration, not your data.
+  # Diamondback assesses configuration, not your data.
   InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -260,7 +260,7 @@ Resources:
         # App Runner uses the instance role to resolve RuntimeEnvironmentSecrets, so the
         # role needs to read exactly one secret — its own database password — and nothing
         # else. Neither managed policy above grants Secrets Manager read.
-        - PolicyName: drishti-read-own-db-secret
+        - PolicyName: diamondback-read-own-db-secret
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -303,19 +303,19 @@ Resources:
           ImageConfiguration:
             Port: '8080'
             RuntimeEnvironmentSecrets:
-              - { Name: DRISHTI_DB_PASSWORD, Value: !Ref DbSecret }
+              - { Name: DIAMONDBACK_DB_PASSWORD, Value: !Ref DbSecret }
             RuntimeEnvironmentVariables:
-              - { Name: DRISHTI_DB_URL, Value: !Sub 'jdbc:postgresql://${Database.Endpoint.Address}:5432/drishti' }
-              - { Name: DRISHTI_DB_USER, Value: drishtiadmin }
-              - { Name: DRISHTI_OIDC_ISSUER, Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}' }
-              - { Name: DRISHTI_OIDC_CLIENT_ID, Value: !Ref UserPoolClient }
+              - { Name: DIAMONDBACK_DB_URL, Value: !Sub 'jdbc:postgresql://${Database.Endpoint.Address}:5432/diamondback' }
+              - { Name: DIAMONDBACK_DB_USER, Value: diamondbackadmin }
+              - { Name: DIAMONDBACK_OIDC_ISSUER, Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}' }
+              - { Name: DIAMONDBACK_OIDC_CLIENT_ID, Value: !Ref UserPoolClient }
               # The Cognito app client is confidential (GenerateSecret: true), so the server-side
               # authorization-code -> token exchange must authenticate with the client secret.
               # Without it, sign-in fails at the token step even though the login page is fine.
-              - { Name: DRISHTI_OIDC_CLIENT_SECRET, Value: !GetAtt UserPoolClient.ClientSecret }
+              - { Name: DIAMONDBACK_OIDC_CLIENT_SECRET, Value: !GetAtt UserPoolClient.ClientSecret }
               # So the console can show which role it runs as, and print a correct
               # put-role-policy command when an operator wants to widen its reach.
-              - { Name: DRISHTI_ROLE_NAME, Value: !Sub '${NamePrefix}-instance-role' }
+              - { Name: DIAMONDBACK_ROLE_NAME, Value: !Sub '${NamePrefix}-instance-role' }
               - { Name: AWS_REGION, Value: !Ref 'AWS::Region' }
       InstanceConfiguration:
         Cpu: 1 vCPU
@@ -337,7 +337,7 @@ Resources:
 
 Outputs:
   AppUrl:
-    Description: Drishti URL
+    Description: Diamondback URL
     Value: !Sub 'https://${Service.ServiceUrl}'
   UserPoolId:
     Value: !Ref UserPool
@@ -348,5 +348,5 @@ Outputs:
   DatabaseEndpoint:
     Value: !GetAtt Database.Endpoint.Address
   InstanceRoleName:
-    Description: The read-only role Drishti runs as
+    Description: The read-only role Diamondback runs as
     Value: !Ref InstanceRole
