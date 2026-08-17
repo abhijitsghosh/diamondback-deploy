@@ -70,6 +70,34 @@ done
 
 # ---------- [1/3] Stack ----------
 echo "▶ [1/3] Deploying the stack — 10–15 min (the database is the slow part)…"
+# On failure CloudFormation's own advice is to go and run describe-stack-events yourself,
+# and the first CREATE_FAILED it lists is usually a resource that failed because something
+# else did. Print the reasons here instead, oldest first, so the cause leads.
+explain_failure() {
+  echo ""
+  echo "✖ The stack did not create. Reasons CloudFormation recorded, first cause first:"
+  aws cloudformation describe-stack-events --region "$REGION" --stack-name "$STACK" \
+    --query 'reverse(StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`].[LogicalResourceId,ResourceStatusReason])' \
+    --output text 2>/dev/null | grep -v 'cancelled\|Resource creation cancelled' | head -5 \
+    | sed 's/^/    /'
+  # App Runner's own reason is "review the application logs", which is no help when the
+  # container never started and there are no application logs to review. Say where to look.
+  if aws cloudformation describe-stack-events --region "$REGION" --stack-name "$STACK" \
+       --query 'StackEvents[?ResourceStatus==`CREATE_FAILED`].LogicalResourceId' \
+       --output text 2>/dev/null | grep -q '\bService\b'; then
+    echo ""
+    echo "  App Runner failed to start the container. If it reported pulling the image and"
+    echo "  then failed with no /aws/apprunner/*/application log group at all, the container"
+    echo "  never ran — check the service log group for the deployment events:"
+    echo "    aws logs tail /aws/apprunner/${STACK}-app --region $REGION --since 1h"
+  fi
+  echo ""
+  echo "  The stack is left in place so those events stay readable. A failed create leaves it"
+  echo "  in ROLLBACK_COMPLETE, which cannot be updated — delete it before re-running install:"
+  echo "    aws cloudformation delete-stack --region $REGION --stack-name $STACK"
+  exit 1
+}
+
 aws cloudformation deploy \
   --region "$REGION" \
   --stack-name "$STACK" \
@@ -77,7 +105,7 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides ContainerImage="$IMAGE" ImageRepositoryType="$IMAGE_TYPE" \
                         NamePrefix="$STACK" \
-  --no-fail-on-empty-changeset
+  --no-fail-on-empty-changeset || { rm -f "$TEMPLATE"; explain_failure; }
 rm -f "$TEMPLATE"
 
 out() { aws cloudformation describe-stacks --region "$REGION" --stack-name "$STACK" \
@@ -120,9 +148,14 @@ cat <<EOF
 
    Open:   $APP_URL
    Sign in with the Cognito account invited above.
-   Next:   name your system, pick the regions (or leave blank for all), add your email
-           domains, and run a scan. You get a PDF report, an SSP scaffold (.docx) and a
-           populated SSP Annex (.xlsx).
+   Next:   choose what you are assessing against — FedRAMP, the Australian ISM, or a
+           general security hardening pass — then name your system, pick the regions
+           (or leave blank for all) and run a scan.
+
+           The target decides what runs and what you can export. FedRAMP gives you an
+           evidence report against the Key Security Indicators; hardening gives you a
+           findings report citing CIS, AWS FSBP, NIST 800-53 and Well-Architected; the
+           ISM adds its own report, an SSP scaffold (.docx) and a populated Annex (.xlsx).
 
    Diamondback runs as '$ROLE' with SecurityAudit + ViewOnlyAccess and nothing more. It reads
    configuration to assess it; it never changes anything, and it never reads your data.
