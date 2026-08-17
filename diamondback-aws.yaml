@@ -1,7 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Diamondback — read-only AWS ISM PROTECTED posture reporting, deployed into the customer's own
-  AWS account. One App Runner service, one RDS Postgres holding attestations and decisions,
+  Diamondback — read-only AWS security posture reporting against FedRAMP's Key Security
+  Indicators, public hardening benchmarks, or the Australian ISM, deployed into the customer's
+  own AWS account. One App Runner service, one RDS Postgres holding attestations and decisions,
   one Cognito user pool for sign-in, and an instance role granted SecurityAudit and
   ViewOnlyAccess and nothing more. Diamondback reads configuration to assess it and never writes
   to the account.
@@ -208,8 +209,10 @@ Resources:
       EnabledMfas: [SOFTWARE_TOKEN_MFA]
       Policies:
         PasswordPolicy:
-          # 15 characters is the ISM's own floor for single-factor authentication
-          # (ism-0421); a compliance product should not sign its operators in with less.
+          # NIST SP 800-63B permits any length a memorised secret verifier will accept and
+          # sets the floor at 8; 15 is the stricter of the two floors this product answers to
+          # (the Australian ISM's ism-0421). A compliance product should not sign its own
+          # operators in with less than the strictest rule it reports on.
           MinimumLength: 15
           RequireLowercase: true
           RequireNumbers: true
