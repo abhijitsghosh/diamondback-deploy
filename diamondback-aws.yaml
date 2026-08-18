@@ -28,6 +28,15 @@ Parameters:
   NamePrefix:
     Type: String
     Default: diamondback
+  MemberAuditRoleName:
+    Type: String
+    Default: DiamondbackAuditRole
+    Description: >
+      Name of the read-only role Diamondback assumes in each member account when an operator
+      runs an organisation-wide scan. Deploy diamondback-member-role.yaml as a StackSet across
+      the organisation to create it. Diamondback may assume ONLY a role of this name, and only
+      in accounts it can already enumerate - it is granted sts:AssumeRole on
+      arn:aws:iam::*:role/<this name> and nothing wider.
 
 Conditions:
   PrivateEcr: !Equals [!Ref ImageRepositoryType, ECR]
@@ -270,6 +279,24 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref DbSecret
+
+        # Organisation-wide assessment. Scoped to one role NAME across accounts rather than
+        # to sts:AssumeRole on "*": Diamondback can reach the audit role a customer chose to
+        # deploy, and nothing else in any member account. Listing is read-only and is what
+        # lets Diamondback report how many accounts it did NOT cover - without it, an
+        # unreachable account is invisible rather than disclosed.
+        - PolicyName: diamondback-assess-organization
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - organizations:DescribeOrganization
+                  - organizations:ListAccounts
+                Resource: '*'
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !Sub 'arn:aws:iam::*:role/${MemberAuditRoleName}'
 
   AccessRole:
     Type: AWS::IAM::Role

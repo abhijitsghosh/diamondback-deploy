@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  The read-only role Diamondback assumes to assess one member account. Deploy this as a
+  CloudFormation StackSet across the organisation (or to individual accounts) so an
+  organisation-wide scan can reach them.
+
+  This creates a role and nothing else. No compute, no storage, no cost. The role grants
+  SecurityAudit and ViewOnlyAccess - the same two AWS-managed read-only policies the
+  Diamondback installation itself runs with - and can be assumed only by Diamondback's own
+  instance role in the account you name below.
+
+  Diamondback reads configuration to assess it. It never writes to an assessed account, and
+  with only these two policies attached a write would fail even if one were attempted.
+
+Parameters:
+  DiamondbackAccountId:
+    Type: String
+    AllowedPattern: '^[0-9]{12}$'
+    Description: >
+      The account Diamondback is installed in - the only account permitted to assume this
+      role. Find it on the console's Access page.
+  DiamondbackRoleName:
+    Type: String
+    Default: diamondback-instance-role
+    Description: >
+      The name of Diamondback's own instance role in that account. Only change this if you
+      installed Diamondback with a NamePrefix other than "diamondback", in which case it is
+      "<your-prefix>-instance-role". Shown on the console's Access page.
+  RoleName:
+    Type: String
+    Default: DiamondbackAuditRole
+    Description: >
+      Must match the role name configured in the Diamondback stack (MemberAuditRoleName) and
+      entered on the scan screen. The default matches both.
+  ExternalId:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: >
+      Optional. When set, Diamondback must present this exact value to assume the role, and
+      the same value must be entered on the scan screen. It defends against the confused
+      deputy problem: a third party who learns this role's ARN still cannot have someone
+      else's Diamondback assume it. Leave blank if the account-scoped trust above is enough
+      for your threat model.
+
+Conditions:
+  HasExternalId: !Not [!Equals [!Ref ExternalId, '']]
+
+Resources:
+
+  AuditRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      Description: >
+        Read-only access for Diamondback security posture assessment. Assumable only by the
+        Diamondback installation in the account named at deploy time.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              # The Diamondback instance role specifically, not the whole account. An account
+              # principal would let any principal there assume this role; naming the role
+              # keeps it to the one workload that needs it.
+              AWS: !Sub 'arn:aws:iam::${DiamondbackAccountId}:role/${DiamondbackRoleName}'
+            Action: sts:AssumeRole
+            Condition: !If
+              - HasExternalId
+              - StringEquals: { 'sts:ExternalId': !Ref ExternalId }
+              - !Ref AWS::NoValue
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+        - arn:aws:iam::aws:policy/job-function/ViewOnlyAccess
+      # One hour is the default and is deliberately not raised. A sweep of a large estate
+      # outlasts it, and the SDK refreshes the session rather than holding a longer one.
+      MaxSessionDuration: 3600
+      Tags:
+        - Key: Purpose
+          Value: diamondback-read-only-assessment
+
+Outputs:
+  RoleArn:
+    Description: The role Diamondback will assume in this account.
+    Value: !GetAtt AuditRole.Arn
+  RoleName:
+    Description: Enter this on Diamondback's scan screen if you changed it from the default.
+    Value: !Ref RoleName
