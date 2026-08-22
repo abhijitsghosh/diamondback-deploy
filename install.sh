@@ -27,11 +27,28 @@ set -euo pipefail
 STACK="diamondback"
 REGION=""; IMAGE=""; IMAGE_TYPE="ECR_PUBLIC"; ADMIN_EMAIL=""
 # Published image. App Runner cannot pull from GHCR, so AWS installs use ECR Public.
-DEFAULT_IMAGE="public.ecr.aws/w4o8p5x9/diamondback:latest"
+IMAGE_REPO="public.ecr.aws/w4o8p5x9/diamondback"
+VERSION_URLS=(
+  "https://diamondback.run/version.json"
+  "https://raw.githubusercontent.com/abhijitsghosh/diamondback-deploy/main/version.json"
+)
 TEMPLATE_URLS=(
   "https://diamondback.run/diamondback-aws.yaml"
   "https://raw.githubusercontent.com/abhijitsghosh/diamondback-deploy/main/diamondback-aws.yaml"
 )
+
+# Resolve the released version and install THAT, rather than whatever ":latest" happens to
+# point at while the install runs. "latest" is a mutable tag: a release rewrites it, and an
+# install that reads it mid-rewrite gets an image nobody chose and cannot reproduce. Pinning
+# also means the version a customer installed is the version they can be told to roll back to.
+resolve_version() {
+  local v=""
+  for url in "${VERSION_URLS[@]}"; do
+    v=$(curl -fsS "$url" 2>/dev/null | sed -n 's/.*"latest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    [[ -n "$v" ]] && { echo "$v"; return 0; }
+  done
+  return 1
+}
 
 usage() {
   echo "Usage: install.sh --region <aws-region> [--stack <name>] [--image <uri>] [--image-type ECR|ECR_PUBLIC] [--admin-email <you@agency.gov.au>]"
@@ -50,7 +67,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 [[ -z "$REGION" ]] && usage
-[[ -z "$IMAGE" ]] && IMAGE="$DEFAULT_IMAGE"
+if [[ -z "$IMAGE" ]]; then
+  if VERSION=$(resolve_version); then
+    IMAGE="${IMAGE_REPO}:${VERSION}"
+  else
+    # The feed is unreachable. Say so rather than silently installing a moving tag.
+    echo "WARNING: could not read the published version feed; falling back to :latest."
+    echo "         The installed version will not be pinned or reproducible."
+    IMAGE="${IMAGE_REPO}:latest"
+  fi
+fi
 
 command -v aws >/dev/null 2>&1 || { echo "ERROR: AWS CLI not found. Run this in AWS CloudShell."; exit 1; }
 aws sts get-caller-identity >/dev/null 2>&1 || { echo "ERROR: not signed in to AWS."; exit 1; }
@@ -76,10 +102,18 @@ echo "▶ [1/3] Deploying the stack — 10–15 min (the database is the slow pa
 explain_failure() {
   echo ""
   echo "✖ The stack did not create. Reasons CloudFormation recorded, first cause first:"
-  aws cloudformation describe-stack-events --region "$REGION" --stack-name "$STACK" \
+  local reasons
+  reasons=$(aws cloudformation describe-stack-events --region "$REGION" --stack-name "$STACK" \
     --query 'reverse(StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`].[LogicalResourceId,ResourceStatusReason])' \
-    --output text 2>/dev/null | grep -v 'cancelled\|Resource creation cancelled' | head -5 \
-    | sed 's/^/    /'
+    --output text 2>/dev/null | grep -v 'cancelled\|Resource creation cancelled' | head -5)
+  if [[ -n "$reasons" ]]; then
+    sed 's/^/    /' <<< "$reasons"
+  else
+    # An empty list is not "no reason" — it means the events are gone, usually because the
+    # stack was deleted. Saying nothing here reads as a tool that failed to explain itself.
+    echo "    (none recorded — the stack's events are no longer readable, which usually"
+    echo "     means it has already been deleted. Re-run the install to reproduce.)"
+  fi
   # App Runner's own reason is "review the application logs", which is no help when the
   # container never started and there are no application logs to review. Say where to look.
   if aws cloudformation describe-stack-events --region "$REGION" --stack-name "$STACK" \

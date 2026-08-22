@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diamondback — the read-only eye on your AWS ISM PROTECTED posture</title>
+<title>Diamondback — read-only FedRAMP evidence from your AWS account</title>
 <meta name="description" content="Diamondback evidences FedRAMP's 2026 Key Security Indicators from live AWS configuration, tracks the 246 requirements and the dates they bind, and hardens against CIS AWS, FSBP and NIST 800-53. Read-only, deployed in your own account.">
 <link rel="canonical" href="https://diamondback.run/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -177,13 +177,14 @@
 <div class="wrap">
   <section id="what">
     <h2>What Diamondback sees</h2>
-    <p class="lead">One read-only pass over your account — every enabled region — turned into evidence against FedRAMP's indicators. Everything it can't prove, it says so, plainly.</p>
+    <p class="lead">One read-only pass over your account — every enabled region, and every account in your AWS Organization if you point it there — turned into evidence against FedRAMP's indicators. Everything it can't prove, it says so, plainly.</p>
     <ul class="clean">
       <li><b>Infrastructure</b> — S3, EBS, RDS, EFS, security groups, VPCs, CloudTrail, KMS, ELB, Backup <span class="mono" style="float:right;color:var(--acc)">▮ live</span></li>
       <li><b>Identity</b> — IAM users, MFA, credential age, password policy, root posture <span class="mono" style="float:right;color:var(--acc)">▮ live</span></li>
       <li><b>Email</b> — SPF / DKIM / DMARC / MTA-STS over public DNS <span class="mono" style="float:right;color:var(--acc)">▮ live</span></li>
       <li><b>Guest patch</b> — in-guest patch state via Systems Manager <span class="mono" style="float:right;color:var(--cyan)">▮ opt-in</span></li>
       <li><b>AWS-authored</b> — Security Hub CIS/FSBP control failures <span class="mono" style="float:right;color:var(--amber)">▮ if enabled</span></li>
+      <li><b>Every account</b> — the whole AWS Organization, via a read-only role you deploy by StackSet <span class="mono" style="float:right;color:var(--cyan)">▮ opt-in</span></li>
     </ul>
   </section>
 
@@ -193,6 +194,7 @@
       <div class="card"><h3>In your account</h3><p>One CloudFormation stack in your own AWS account — App Runner, RDS, Cognito. Your configuration never leaves it.</p></div>
       <div class="card"><h3>Read-only by construction</h3><p><span class="mono">SecurityAudit</span> + <span class="mono">ViewOnlyAccess</span> and nothing else. Every call is a describe, list or get — checkable in source, and refused by IAM if it weren't.</p></div>
       <div class="card"><h3>Asks, explained</h3><p>When a check needs a service you haven't enabled, Diamondback says which, why, what it unlocks, and the exact <span class="mono">aws</span> command — including what it will cost you.</p></div>
+      <div class="card"><h3>One account or all of them</h3><p>Point it at your AWS Organization and it assumes a read-only role in each member account and sweeps them together. Every finding still names the account it came from — and any account it could not reach is named too, as unassessed.</p></div>
       <div class="card"><h3>Obvious identity</h3><p>The console reads its own role back from IAM and shows you the policies attached — not a claim in a brochure, a live check.</p></div>
     </div>
   </section>
@@ -222,6 +224,7 @@
       <div class="card"><h3>Absence is never a pass</h3><p>No evidence is <i>not assessed</i>. A missing prerequisite is <i>no visibility</i>. A permission error is <i>no visibility</i> — never mistaken for "no resources exist".</p></div>
       <div class="card"><h3>The 246 rules are not graded</h3><p>They are programme and process obligations — independent assessment, marketplace listing, change notification. Grading them from an AWS account would be nonsense, so Diamondback carries the register and the dates, and assesses none of it.</p></div>
       <div class="card"><h3>Unscanned is not clean</h3><p>Before a scan has run, indicators show <i>unscanned</i> rather than clean, because clean would be an artefact of having no findings to show.</p></div>
+      <div class="card"><h3>An account it could not reach is not an account with nothing wrong</h3><p>The two look identical: both produce no findings. So every report states which accounts it covered and names the ones it did not, and if your organisation could not even be listed it says the number of accounts it missed is unknown.</p></div>
     </div>
   </section>
 
