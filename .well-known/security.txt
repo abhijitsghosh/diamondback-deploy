@@ -1,0 +1,13 @@
+# Diamondback — security contact
+# https://www.rfc-editor.org/rfc/rfc9116
+
+Contact: mailto:security@diamondback.run
+Expires: 2027-08-23T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://diamondback.run/.well-known/security.txt
+Policy: https://diamondback.run/#security
+
+# Diamondback is a read-only AWS posture tool that runs inside the customer's own
+# account. The install templates are public and the full source is available to
+# security teams on request. Reports of a write path, a privilege escalation, or a
+# case where the tool overstates what it can evidence are all in scope.

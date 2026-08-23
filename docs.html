@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diamondback — Documentation</title>
+<title>Diamondback documentation — FedRAMP evidence, Essential Eight and AWS hardening</title>
 <meta name="description" content="How Diamondback works: five read-only evidence planes, the permission-consent model, framework mappings, install and teardown, and its security posture.">
 <link rel="canonical" href="https://diamondback.run/docs.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -20,7 +20,12 @@
 <meta property="og:title" content="Diamondback — Documentation">
 <meta property="og:description" content="Five read-only evidence planes, controls & decisions, install and teardown, framework mappings, and Diamondback's security posture.">
 <meta property="og:url" content="https://diamondback.run/docs.html">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://diamondback.run/img/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="628">
+<meta property="og:image:alt" content="Diamondback documentation — evidence planes, controls and install">
+<meta name="twitter:image" content="https://diamondback.run/img/og-card.jpg">
 <style>
   /* Same canyon palette as the landing page: rock, ochre, the amber eye. */
   :root{--bg:#0a0806;--panel:#12100c;--line:#2b2118;--fg:#e6dccb;--dim:#9a8d78;
@@ -100,7 +105,7 @@
     <div class="note"><b>Diamondback is not a 3PAO and grants no authorisation.</b> It reports what your configuration shows. Whether an indicator is met is an assessor's determination — the tool has no status that says so.</div>
 
     <figure class="shot">
-      <img src="img/docs/01-scan-target.png" alt="" loading="lazy">
+      <img src="img/docs/01-scan-target.png" alt="Diamondback scan screen with the Australian ISM selected, showing the three assessment targets and the classification field" loading="lazy">
       <figcaption><b>Choosing what you are assessed against.</b> The target decides what runs and what you can export — a FedRAMP provider is never shown an ISM control, and an Australian agency is never shown a Key Security Indicator. Selecting the ISM reveals the classification field and the Essential Eight; selecting FedRAMP hides both.</figcaption>
     </figure>
     <h2 id="fedramp"><span class="n">02</span>FedRAMP 2026</h2>
@@ -147,7 +152,7 @@
       of the evidence for a fraction of the strategies. Awarding a level from that would be the same
       overclaim as reporting a Key Security Indicator "met".</p>
     <figure class="shot">
-      <img src="img/docs/02-essential8.png" alt="" loading="lazy">
+      <img src="img/docs/02-essential8.png" alt="Diamondback Essential Eight screen: two strategies evidenced clean, two with findings, one with no result and three outside cloud visibility, with Systems Manager enrolment steps and a read-only PowerShell audit script" loading="lazy">
       <figcaption><b>Essential Eight coverage.</b> Two strategies evidenced clean, two raising findings, one with no result, and three outside cloud visibility. A strategy that cannot answer carries the steps that would make it answer — Systems Manager fails silently in four distinct ways, so all four are spelled out. The strategies AWS cannot see ship a read-only PowerShell audit script with its Run Command invocation.</figcaption>
     </figure>
     <p>"No result" is deliberately distinct from clean. An account with no instances enrolled in
@@ -209,7 +214,7 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
     <div class="note">Framework control identifiers are curated references, not verbatim benchmark text, and should be verified against the pinned source version.</div>
 
     <figure class="shot">
-      <img src="img/docs/03-hardening.png" alt="" loading="lazy">
+      <img src="img/docs/03-hardening.png" alt="Diamondback hardening recommendations listing affected AWS resources, the CLI command that fixes each, and the public benchmarks the finding implements" loading="lazy">
       <figcaption><b>Hardening recommendations.</b> Every finding names the resources it applies to, with account and region, the AWS CLI command that fixes it, and the public benchmarks it implements — so one line item can be carried into whichever regime you answer to.</figcaption>
     </figure>
     <h2 id="security"><span class="n">12</span>Security posture</h2>
