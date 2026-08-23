@@ -60,6 +60,13 @@
   img.shot{width:100%;border:1px solid var(--line);border-radius:8px;margin:14px 0 4px;display:block}
   .cap{color:var(--dim);font-size:12px;margin:0 0 20px}
   @media(max-width:760px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}}
+
+  figure.shot { margin: 20px 0 26px; }
+  figure.shot img { width: 100%; height: auto; display: block; border: 1px solid var(--line);
+                    border-radius: 6px; background: var(--bg); }
+  figure.shot figcaption { font-size: 12.5px; color: var(--dim); margin-top: 8px;
+                           line-height: 1.55; }
+  figure.shot figcaption b { color: var(--fg); }
 </style>
 </head>
 <body>
@@ -73,6 +80,7 @@
     <a href="#verdicts">Verdicts &amp; honesty</a>
     <a href="#controls">Controls &amp; decisions</a>
     <div class="grp">Operate</div>
+    <a href="#essential8">Essential Eight</a>
     <a href="#install">Install</a>
     <a href="#permissions">Access &amp; services</a>
     <a href="#identity">The role it runs as</a>
@@ -91,6 +99,10 @@
     <p>It does three things with what it reads. It <b>evidences FedRAMP's Key Security Indicators</b> from live configuration; it <b>carries the FedRAMP requirements register</b> filtered to your certification, with the dates each rule binds; and it <b>recommends hardening</b> mapped to CIS AWS Foundations, AWS FSBP and NIST 800-53. The Australian Government ISM at PROTECTED is still assessed in full for customers who need both.</p>
     <div class="note"><b>Diamondback is not a 3PAO and grants no authorisation.</b> It reports what your configuration shows. Whether an indicator is met is an assessor's determination — the tool has no status that says so.</div>
 
+    <figure class="shot">
+      <img src="img/docs/01-scan-target.png" alt="" loading="lazy">
+      <figcaption><b>Choosing what you are assessed against.</b> The target decides what runs and what you can export — a FedRAMP provider is never shown an ISM control, and an Australian agency is never shown a Key Security Indicator. Selecting the ISM reveals the classification field and the Essential Eight; selecting FedRAMP hides both.</figcaption>
+    </figure>
     <h2 id="fedramp"><span class="n">02</span>FedRAMP 2026</h2>
     <p>FedRAMP retired the OSCAL baselines. The current source of truth is the <b>Consolidated Rules for 2026</b>, published as one machine-readable dataset, which Diamondback bundles and reports against.</p>
     <table>
@@ -125,7 +137,29 @@
     <p>Every ISM control, correlated with the scan. Where the scan <b>proved</b> a control you see it; where it saw <b>nothing</b> you attest it (verdict, justification, attestor); and where it found a <b>negative</b> you decide what to do — remediate, accept the risk, record a compensating control, or dispute it. A compensating control or a disputed false positive reports <b>Effective</b> (the machine result kept alongside); risk-acceptance and remediation keep the finding and record the treatment. A guided walkthrough steps through everything that needs action.</p>
     <p>The one artefact your assessor needs is the <b>merged PDF report</b>: it fuses the machine scan with your attestations and decisions, so a compensating control or accepted risk shows against its control. Attestations and decisions are stored in the deployment's own RDS Postgres, so they survive restarts and one-command upgrades.</p>
 
-    <h2 id="install"><span class="n">06</span>Install</h2>
+    <h2 id="essential8"><span class="n">06</span>Essential Eight</h2>
+    <p>Selecting the Australian ISM adds the ACSC Essential Eight, with a report of its own. It is
+      an <b>endpoint</b> model being reported from a cloud control plane, so Diamondback is explicit
+      about the difference: all eight strategies always appear, and the three that live inside a
+      guest operating system are reported as outside cloud visibility rather than scored.</p>
+    <p><b>No maturity level is awarded.</b> ML1 to ML3 are assessed across an organisation's whole
+      environment — endpoints, servers, processes and people — and one AWS account holds a fraction
+      of the evidence for a fraction of the strategies. Awarding a level from that would be the same
+      overclaim as reporting a Key Security Indicator "met".</p>
+    <figure class="shot">
+      <img src="img/docs/02-essential8.png" alt="" loading="lazy">
+      <figcaption><b>Essential Eight coverage.</b> Two strategies evidenced clean, two raising findings, one with no result, and three outside cloud visibility. A strategy that cannot answer carries the steps that would make it answer — Systems Manager fails silently in four distinct ways, so all four are spelled out. The strategies AWS cannot see ship a read-only PowerShell audit script with its Run Command invocation.</figcaption>
+    </figure>
+    <p>"No result" is deliberately distinct from clean. An account with no instances enrolled in
+      Systems Manager produces no patch findings at all, and that silence is not evidence of being
+      patched — so patching reports no result, with the enrolment steps attached.</p>
+    <p>The audit scripts are read-only by construction: each queries policy state and prints JSON,
+      and none creates, modifies or enforces anything. Diamondback ships the queries rather than
+      running them — it holds <code>SecurityAudit</code> and <code>ViewOnlyAccess</code> and issues
+      describe, list and get calls, and running a command on your host is a different kind of act
+      needing a different kind of permission.</p>
+
+    <h2 id="install"><span class="n">07</span>Install</h2>
     <p>From <a href="https://console.aws.amazon.com/cloudshell" target="_blank" rel="noopener">AWS CloudShell</a>, in the account you want assessed:</p>
     <pre><code>curl -sL https://diamondback.run/install.sh | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au</code></pre>
     <p>This deploys one CloudFormation stack named <code>diamondback</code>: an <b>App Runner</b> service with a managed HTTPS endpoint, an <b>RDS Postgres</b> (encrypted, private, 7-day backups) for your attestations and decisions, a <b>Cognito</b> user pool for sign-in, a private VPC with a NAT gateway for egress, and an instance role holding <code>SecurityAudit</code> + <code>ViewOnlyAccess</code>. Infrastructure, identity, email and hardening checks work immediately. Allow 10–15 minutes; the database is the slow part.</p>
@@ -141,7 +175,7 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
   --targets Key=InstanceIds,Values=* --parameters Operation=Scan \
   --schedule-expression "rate(1 day)"</code></pre>
 
-    <h2 id="permissions"><span class="n">07</span>Access &amp; services to enable</h2>
+    <h2 id="permissions"><span class="n">08</span>Access &amp; services to enable</h2>
     <p>When a plane cannot collect, Diamondback surfaces the ask in the console — with the reason, the ISM controls it unlocks, a console deep link and a copy-paste command. Two shapes of ask, kept distinct because only one is fixed by editing a policy:</p>
     <h3>An AWS service that is not enabled</h3>
     <pre><code>aws securityhub enable-security-hub --region ap-southeast-2</code></pre>
@@ -152,14 +186,14 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
   --policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"ssm:DescribeInstancePatchStates","Resource":"*"}]}'</code></pre>
     <p>Every action Diamondback asks for is a describe, list or get — the read-only guard is asserted in the test suite, not just in the prose.</p>
 
-    <h2 id="identity"><span class="n">08</span>The role it runs as</h2>
+    <h2 id="identity"><span class="n">09</span>The role it runs as</h2>
     <p>Diamondback reads your account as the App Runner instance role <code>diamondback-instance-role</code>. The console reads that role back <i>from IAM</i> and shows the policies actually attached — a live check, not a claim. There is no service account password and no baked AWS secret; credentials come from the instance role, and the only secret is the Cognito client secret, injected as a runtime environment variable by CloudFormation.</p>
 
-    <h2 id="teardown"><span class="n">09</span>Teardown</h2>
+    <h2 id="teardown"><span class="n">10</span>Teardown</h2>
     <pre><code>aws cloudformation delete-stack --region ap-southeast-2 --stack-name diamondback</code></pre>
     <p>One command removes everything. The database is <b>snapshotted</b> before deletion, so your attestations and decisions are recoverable if you change your mind; delete the snapshot yourself when you are sure.</p>
 
-    <h2 id="frameworks"><span class="n">10</span>Frameworks</h2>
+    <h2 id="frameworks"><span class="n">11</span>Frameworks</h2>
     <p>One scan, mapped to every framework a finding touches — pinned to versions:</p>
     <table>
       <thead><tr><th>Framework</th><th>Version</th></tr></thead>
@@ -174,7 +208,11 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
     </table>
     <div class="note">Framework control identifiers are curated references, not verbatim benchmark text, and should be verified against the pinned source version.</div>
 
-    <h2 id="security"><span class="n">11</span>Security posture</h2>
+    <figure class="shot">
+      <img src="img/docs/03-hardening.png" alt="" loading="lazy">
+      <figcaption><b>Hardening recommendations.</b> Every finding names the resources it applies to, with account and region, the AWS CLI command that fixes it, and the public benchmarks it implements — so one line item can be carried into whichever regime you answer to.</figcaption>
+    </figure>
+    <h2 id="security"><span class="n">12</span>Security posture</h2>
     <p>Read-only by construction: two AWS managed read-only policies, and every call in the source is a describe, list or get. No baked AWS secrets — the instance role supplies credentials. Cognito OIDC sign-in, fail-closed, with a 15-character password floor and MFA available. The database is encrypted at rest, private to the VPC, and reachable only from the app's security group. Attestations, decisions and branding persist there, so upgrades preserve them. The install template is public and the full source is available to security teams on request — <a href="mailto:security@diamondback.run">security@diamondback.run</a>.</p>
 </main>
 </div>
