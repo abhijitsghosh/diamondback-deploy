@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diamondback — read-only FedRAMP evidence from your AWS account</title>
-<meta name="description" content="Diamondback evidences FedRAMP's 2026 Key Security Indicators from live AWS configuration, tracks the 246 requirements and the dates they bind, and hardens against CIS AWS, FSBP and NIST 800-53. Read-only, deployed in your own account.">
+<title>Diamondback — AWS compliance and hardening assessment</title>
+<meta name="description" content="Diamondback evidences FedRAMP's 2026 Key Security Indicators from live AWS configuration, tracks the 246 requirements and the dates they bind, and hardens against CIS AWS, FSBP and NIST 800-53. Installs into your own AWS account and reports the evidence behind every result.">
 <link rel="canonical" href="https://diamondback.run/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0a0806">
@@ -14,7 +14,7 @@
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Diamondback">
-<meta property="og:title" content="Diamondback — read-only FedRAMP evidence from your own AWS account">
+<meta property="og:title" content="Diamondback — AWS compliance and hardening assessment">
 <meta property="og:description" content="Evidence FedRAMP's 2026 Key Security Indicators from live AWS configuration, and see which of the 246 requirements bind you and when.">
 <meta property="og:url" content="https://diamondback.run/">
 <meta name="twitter:card" content="summary_large_image">
@@ -24,9 +24,9 @@
 <meta property="og:image:alt" content="Diamondback console — read-only FedRAMP evidence from an AWS account">
 <meta name="twitter:image" content="https://diamondback.run/img/og-card.jpg">
 <meta name="twitter:title" content="Diamondback — read-only FedRAMP evidence from your own AWS account">
-<meta name="twitter:description" content="FedRAMP 2026 KSI evidence and the requirements register, straight from your own AWS account. Read-only.">
+<meta name="twitter:description" content="Check an AWS account against FedRAMP's 46 Key Security Indicators and 246 requirements, the Australian ISM, or public hardening benchmarks.">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Diamondback","applicationCategory":"SecurityApplication","operatingSystem":"Amazon Web Services","description":"Read-only AWS posture tool that evidences FedRAMP 2026 Key Security Indicators from live configuration, carries the FedRAMP requirements register with its binding dates, and hardens against CIS AWS, FSBP and NIST 800-53.","offers":{"@type":"Offer","url":"https://buy.stripe.com/cNidR8gu14VG26ogPP7kc03","price":"100","priceCurrency":"USD","priceSpecification":{"@type":"UnitPriceSpecification","price":"100","priceCurrency":"USD","unitText":"per install","billingIncrement":1,"billingDuration":1,"unitCode":"MON"},"availability":"https://schema.org/InStock"},"url":"https://diamondback.run/","publisher":{"@type":"Organization","name":"Diamondback"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Diamondback","applicationCategory":"SecurityApplication","operatingSystem":"Amazon Web Services","description":"AWS assessment tool that checks an account against FedRAMP 2026 Key Security Indicators from live configuration, carries the FedRAMP requirements register with its binding dates, and hardens against CIS AWS, FSBP and NIST 800-53.","offers":{"@type":"Offer","url":"https://buy.stripe.com/cNidR8gu14VG26ogPP7kc03","price":"100","priceCurrency":"USD","priceSpecification":{"@type":"UnitPriceSpecification","price":"100","priceCurrency":"USD","unitText":"per install","billingIncrement":1,"billingDuration":1,"unitCode":"MON"},"availability":"https://schema.org/InStock"},"url":"https://diamondback.run/","publisher":{"@type":"Organization","name":"Diamondback"}}
 </script>
 <style>
   :root{
@@ -38,8 +38,14 @@
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
+  /* The hero art breaks out of the content column with width:100vw, and 100vw counts the
+     scrollbar — so the document grows wider than the viewport. overflow-x on body alone does
+     not stop a mobile browser widening its layout viewport to match, which clipped the
+     headline, the paragraph and the install command off the right edge at 390px. Clipping at
+     the root is what actually holds it. */
+  html{overflow-x:clip}
   body{margin:0;background:radial-gradient(1200px 720px at 50% -12%,#0a1618 0%,var(--bg) 62%);
-       color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+       color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow-x:clip}
   .mono{font-family:"SF Mono",Menlo,Consolas,monospace}
   a{color:var(--acc);text-decoration:none}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
@@ -91,13 +97,19 @@
     .hero{min-height:auto;padding:40px 0 44px}
     .hero-art{background-position:center}
     .hero-art::after{background:linear-gradient(180deg,rgba(8,6,5,.88),rgba(8,6,5,.94) 55%,var(--bg) 100%)}
+    /* The nav ran past the right edge at 375px, putting "How" and "Install" outside the
+       viewport — and since the root now clips overflow, outside means unreachable rather
+       than merely off-screen. Wrap it and drop the left margins that caused the run-on. */
+    header{flex-wrap:wrap;gap:10px 0}
+    nav{display:flex;flex-wrap:wrap;gap:8px 16px;width:100%}
+    nav a{margin-left:0}
   }
   .hero h1{font-size:42px;line-height:1.05;margin:0 0 14px;letter-spacing:-.5px}
   .hero h1 span{color:var(--acc)}
   .tag{color:var(--dim);font-size:16px;max-width:38ch}
   .cli{margin-top:24px;background:#0b0806;border:1px solid var(--line);border-radius:8px;padding:14px 16px;position:relative}
   .cli .lbl{position:absolute;top:-9px;left:12px;background:var(--bg);padding:0 6px;font-size:10px;letter-spacing:1.5px;color:var(--dim)}
-  .cli code{color:var(--acc);font-size:14px}
+  .cli code{color:var(--acc);font-size:14px;white-space:pre-wrap;word-break:break-word}
   .cli-copy{position:absolute;top:-9px;right:12px;background:var(--bg);border:1px solid var(--line);color:var(--dim);
     font-size:10px;letter-spacing:1px;padding:1px 8px;border-radius:4px;cursor:pointer}
   .cli-copy:hover{color:var(--acc);border-color:var(--acc)}
@@ -153,7 +165,7 @@
     <div class="hero-art" aria-hidden="true"></div>
     <div class="hero-copy">
 
-      <h1>Read-only <span>FedRAMP</span> evidence, straight from your AWS account.</h1>
+      <h1>Check your AWS accounts against <span>FedRAMP</span>, the Australian ISM, or public hardening benchmarks.</h1>
       <p class="tag">FedRAMP's 2026 rules replaced the baselines with 46 Key Security Indicators and 246 requirements on fixed dates. Diamondback shows which you can evidence from live configuration today, and which deadlines are closing.</p>
       <div class="cli" id="install">
         <span class="lbl">AWS CLOUDSHELL</span>
@@ -291,7 +303,7 @@
   </div>
 
   <footer>
-    &#9670; DIAMONDBACK · read-only FedRAMP evidence for AWS · <a href="docs.html">docs</a> · <a href="mailto:sales@diamondback.run">sales@diamondback.run</a> · <a href="mailto:security@diamondback.run">security@diamondback.run</a>
+    &#9670; DIAMONDBACK · AWS compliance and hardening assessment · <a href="docs.html">docs</a> · <a href="mailto:sales@diamondback.run">sales@diamondback.run</a> · <a href="mailto:security@diamondback.run">security@diamondback.run</a>
   </footer>
 </div>
 
