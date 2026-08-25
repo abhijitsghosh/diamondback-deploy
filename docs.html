@@ -102,7 +102,7 @@
     <h2 id="what"><span class="n">01</span>What it is</h2>
     <p>Diamondback deploys into your own AWS account and reads it — with nothing but the AWS managed <code>SecurityAudit</code> and <code>ViewOnlyAccess</code> policies. It writes nothing, and it never reads the contents of your buckets, databases or logs — only their configuration.</p>
     <p>It does three things with what it reads. It <b>evidences FedRAMP's Key Security Indicators</b> from live configuration; it <b>carries the FedRAMP requirements register</b> filtered to your certification, with the dates each rule binds; and it <b>recommends hardening</b> mapped to CIS AWS Foundations, AWS FSBP and NIST 800-53. The Australian Government ISM at PROTECTED is still assessed in full for customers who need both.</p>
-    <div class="note"><b>Diamondback is not a 3PAO and grants no authorisation.</b> It reports what your configuration shows. Whether an indicator is met is an assessor's determination — the tool has no status that says so.</div>
+    <div class="note"><b>Diamondback is not an assessor and grants no authorisation.</b> It reports what your configuration shows. Whether an indicator is met is an assessor's determination — the tool has no status that says so.</div>
 
     <figure class="shot">
       <img src="img/docs/01-scan-target.png" alt="Diamondback scan screen with the Australian ISM selected, showing the three assessment targets and the classification field" loading="lazy">
@@ -120,6 +120,17 @@
     </table>
     <div class="note"><b>Deadlines.</b> Seven families are mandatory with fixed dates. VDR and VER bind on <b>7 December 2026</b> under CISA BOD 26-04. A date already passed but inside its grace period is reported as <i>in grace</i>, not overdue — those are materially different positions to be in.</div>
     <p>The 246 rules are <b>not graded</b>. They are programme and process obligations — independent assessment, marketplace listing, significant change notification — and grading them from an AWS account would be an overclaim. Diamondback shows the rule, its evidence artefacts, its dates, and FedRAMP's own "commonly misread" warnings.</p>
+
+    <p><b>Machine-readable evidence.</b> Every FedRAMP scan also exports
+      <code>ksi-evidence.json</code> — the same result as the PDF, generated from the same
+      snapshot in the same process, which is what
+      <a href="https://www.fedramp.gov/2026/">CDS-CSO-CBF</a> asks providers to guarantee by
+      automation rather than by proofreading. It carries each indicator, the NIST controls it
+      rests on, the checks that evidenced it and the findings raised, plus an explicitly empty
+      <code>provider_assertion</code> slot. Diamondback never fills that slot: the Consolidated
+      Rules define five artifacts per indicator, authored by the provider and tested
+      independently, so a tool stamping <code>COMPLIANT</code> would be making the provider's
+      claim on their behalf from a fraction of the evidence.</p>
 
     <h2 id="planes"><span class="n">03</span>Five evidence planes</h2>
     <table>
