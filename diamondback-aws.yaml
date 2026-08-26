@@ -318,6 +318,23 @@ Resources:
       Subnets: [!Ref SubnetA, !Ref SubnetB]
       SecurityGroups: [!GetAtt AppSecurityGroup.GroupId]
 
+  # Exactly one instance, deliberately. The service holds the latest scan in memory and
+  # restores it from the database on start, so a second instance would answer the console
+  # with its own stale copy until it happened to restart — an operator would see results
+  # flip depending on which one the load balancer picked. Recurring validation makes the
+  # same problem more expensive: every instance would scan on every tick, multiplying AWS
+  # API calls against the customer's own rate limits.
+  #
+  # App Runner's default maximum is 25. The scheduler also claims its runs through the
+  # database so correctness does not rest on this setting alone, but this is what keeps the
+  # console honest.
+  SingleInstance:
+    Type: AWS::AppRunner::AutoScalingConfiguration
+    Properties:
+      AutoScalingConfigurationName: !Sub '${NamePrefix}-single'
+      MinSize: 1
+      MaxSize: 1
+
   Service:
     Type: AWS::AppRunner::Service
     Properties:
@@ -351,6 +368,7 @@ Resources:
         Cpu: 1 vCPU
         Memory: 2 GB
         InstanceRoleArn: !GetAtt InstanceRole.Arn
+      AutoScalingConfigurationArn: !GetAtt SingleInstance.AutoScalingConfigurationArn
       NetworkConfiguration:
         EgressConfiguration:
           EgressType: VPC
