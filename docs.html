@@ -81,6 +81,7 @@
     <a href="/">← Home</a>
     <div class="grp">Overview</div>
     <a href="#what">What it is</a>
+    <a href="#fedramp">FedRAMP 2026</a>
     <a href="#planes">Evidence planes</a>
     <a href="#verdicts">Verdicts &amp; honesty</a>
     <a href="#controls">Controls &amp; decisions</a>
@@ -142,6 +143,29 @@
       not how many resources it examined, so <code>total_resources</code> is absent rather than
       set to the failing count. <code>fedramp_id</code> and <code>impact_level</code> are yours
       to supply and stay null until you do.</p>
+
+    <h3>Working an assessment</h3>
+    <p>Pick <b>FedRAMP</b> on the scan screen and Diamondback runs only that — no ISM control
+      appears anywhere, and the artefacts on offer are the FedRAMP ones. Set your certification
+      type, path and class on the FedRAMP screen; the requirements register filters to what binds
+      you, and the validation cadence follows your class.</p>
+    <p>Each indicator shows what your configuration evidences and what it does not. The status
+      vocabulary is deliberately narrow — <i>evidence, clean</i>, <i>evidence, findings</i>,
+      <i>needs attestation</i> — and there is no word for "met", because whether an indicator is
+      met is an assessor's determination. Where no check maps to an indicator's controls,
+      Diamondback says so and you attest it; the attestation is recorded with who made it and
+      why, and travels into the exports.</p>
+    <h3>What you take to an assessor</h3>
+    <ul class="clean">
+      <li><b>Evidence report (.pdf)</b> — indicator by indicator, with coverage, the requirements
+        that bind you and their dates, and the validation cadence you are held to</li>
+      <li><b>ksi-report-&lt;date&gt;.json</b> — the same result, machine-readable, for an evidence
+        pipeline</li>
+      <li><b>ksi-report-&lt;date&gt;.md</b> — the human-readable twin, rendered from the JSON</li>
+      <li><b>KSI evidence (.csv)</b> — for working the indicators in a spreadsheet</li>
+    </ul>
+    <p>None of them is a FedRAMP artifact. The Consolidated Rules require five per indicator, and
+      they are yours to author; these are the machine evidence you bring to writing them.</p>
 
     <h2 id="planes"><span class="n">03</span>Five evidence planes</h2>
     <table>
