@@ -201,6 +201,7 @@
       <li><b>Email</b> — SPF / DKIM / DMARC / MTA-STS over public DNS <span class="mono" style="float:right;color:var(--acc)">▮ live</span></li>
       <li><b>Guest patch</b> — in-guest patch state via Systems Manager <span class="mono" style="float:right;color:var(--cyan)">▮ opt-in</span></li>
       <li><b>AWS-authored</b> — Security Hub CIS/FSBP control failures <span class="mono" style="float:right;color:var(--amber)">▮ if enabled</span></li>
+      <li><b>AWS Config</b> — conformance-pack rules evaluated non-compliant <span class="mono" style="float:right;color:var(--amber)">▮ if deployed</span></li>
       <li><b>Every account</b> — the whole AWS Organization, via a read-only role you deploy by StackSet <span class="mono" style="float:right;color:var(--cyan)">▮ opt-in</span></li>
     </ul>
   </section>
@@ -211,6 +212,16 @@
       <div class="card"><h3>In your account</h3><p>One CloudFormation stack in your own AWS account — App Runner, RDS, Cognito. Your configuration never leaves it.</p></div>
       <div class="card"><h3>Read-only by construction</h3><p><span class="mono">SecurityAudit</span> + <span class="mono">ViewOnlyAccess</span> and nothing else. Every call is a describe, list or get — checkable in source, and refused by IAM if it weren't.</p></div>
       <div class="card"><h3>Asks, explained</h3><p>When a check needs a service you haven't enabled, Diamondback says which, why, what it unlocks, and the exact <span class="mono">aws</span> command — including what it will cost you.</p></div>
+      <div class="card"><h3>Evidence a pipeline can read</h3><p>Every FedRAMP scan exports
+        <span class="mono">ksi-report-&lt;date&gt;.json</span> and a matching
+        <span class="mono">.md</span>, named and shaped for a FedRAMP 20x evidence pipeline.
+        The markdown is rendered <i>from</i> the JSON, so the two cannot disagree — which is
+        what <span class="mono">CDS-CSO-CBF</span> asks providers to guarantee by automation
+        rather than by proofreading.</p></div>
+      <div class="card"><h3>On the cadence the rules set</h3><p>FedRAMP phrases validation as a
+        maximum interval — every 3 days at Class C, 7 at Class B. Diamondback reads that from
+        the rules, re-runs the scan when it lapses, and shows whether you are inside your
+        interval. Off until you switch it on: each run spends your own AWS API quota.</p></div>
       <div class="card"><h3>One account or all of them</h3><p>Point it at your AWS Organization and it assumes a read-only role in each member account and sweeps them together. Every finding still names the account it came from — and any account it could not reach is named too, as unassessed.</p></div>
       <div class="card"><h3>Obvious identity</h3><p>The console reads its own role back from IAM and shows you the policies attached — not a claim in a brochure, a live check.</p></div>
     </div>
@@ -241,6 +252,13 @@
       <div class="card"><h3>Absence is never a pass</h3><p>No evidence is <i>not assessed</i>. A missing prerequisite is <i>no visibility</i>. A permission error is <i>no visibility</i> — never mistaken for "no resources exist".</p></div>
       <div class="card"><h3>The 246 rules are not graded</h3><p>They are programme and process obligations — independent assessment, marketplace listing, change notification. Grading them from an AWS account would be nonsense, so Diamondback carries the register and the dates, and assesses none of it.</p></div>
       <div class="card"><h3>Unscanned is not clean</h3><p>Before a scan has run, indicators show <i>unscanned</i> rather than clean, because clean would be an artefact of having no findings to show.</p></div>
+      <div class="card"><h3>The machine evidence, not the assertion</h3><p>The Consolidated
+        Rules require five artifacts per indicator — explanation, persistence cycle,
+        verification, verification of the automation, validation — authored by the provider and
+        tested independently. The exports carry what your configuration shows and leave
+        <span class="mono">provider_assertion</span> empty. Nothing Diamondback produces stamps
+        an indicator <span class="mono">COMPLIANT</span>, because that is not a configuration
+        reader's call to make.</p></div>
       <div class="card"><h3>An account it could not reach is not an account with nothing wrong</h3><p>The two look identical: both produce no findings. So every report states which accounts it covered and names the ones it did not, and if your organisation could not even be listed it says the number of accounts it missed is unknown.</p></div>
     </div>
   </section>

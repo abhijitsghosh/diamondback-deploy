@@ -86,6 +86,8 @@
     <a href="#controls">Controls &amp; decisions</a>
     <div class="grp">Operate</div>
     <a href="#essential8">Essential Eight</a>
+    <a href="#crossaccount">Every account</a>
+    <a href="#cadence">Validation cadence</a>
     <a href="#install">Install</a>
     <a href="#permissions">Access &amp; services</a>
     <a href="#identity">The role it runs as</a>
@@ -121,16 +123,25 @@
     <div class="note"><b>Deadlines.</b> Seven families are mandatory with fixed dates. VDR and VER bind on <b>7 December 2026</b> under CISA BOD 26-04. A date already passed but inside its grace period is reported as <i>in grace</i>, not overdue — those are materially different positions to be in.</div>
     <p>The 246 rules are <b>not graded</b>. They are programme and process obligations — independent assessment, marketplace listing, significant change notification — and grading them from an AWS account would be an overclaim. Diamondback shows the rule, its evidence artefacts, its dates, and FedRAMP's own "commonly misread" warnings.</p>
 
-    <p><b>Machine-readable evidence.</b> Every FedRAMP scan also exports
-      <code>ksi-evidence.json</code> — the same result as the PDF, generated from the same
-      snapshot in the same process, which is what
-      <a href="https://www.fedramp.gov/2026/">CDS-CSO-CBF</a> asks providers to guarantee by
-      automation rather than by proofreading. It carries each indicator, the NIST controls it
-      rests on, the checks that evidenced it and the findings raised, plus an explicitly empty
-      <code>provider_assertion</code> slot. Diamondback never fills that slot: the Consolidated
-      Rules define five artifacts per indicator, authored by the provider and tested
-      independently, so a tool stamping <code>COMPLIANT</code> would be making the provider's
-      claim on their behalf from a fraction of the evidence.</p>
+    <p><b>Machine-readable evidence.</b> Every FedRAMP scan exports
+      <code>ksi-report-&lt;date&gt;.json</code> and a matching <code>ksi-report-&lt;date&gt;.md</code>,
+      named and shaped so they drop into a FedRAMP 20x evidence pipeline without translation.
+      The markdown is rendered <i>from</i> the JSON document rather than generated beside it, so
+      every number in one is read out of the other — the strongest available reading of
+      <code>CDS-CSO-CBF</code>, which requires providers to use automation to keep the two
+      formats consistent.</p>
+    <p>Each indicator carries its NIST controls, the checks that evidenced it, the findings
+      raised, when it was last evaluated, and an explicitly empty <code>provider_assertion</code>.
+      <b>Diamondback never fills that slot.</b> The Consolidated Rules define five artifacts per
+      indicator — explanation of the measures and their objectives, explanation of the
+      persistence cycle, verification that the measures demonstrate the indicator, verification
+      that the automation is accurate and sufficient, and validation that the measures work —
+      authored by the provider and tested independently. A tool stamping <code>COMPLIANT</code>
+      would be making the provider's claim on their behalf from a fraction of the evidence.</p>
+    <p>Counts it does not know are null rather than guessed: a check reports what it flagged,
+      not how many resources it examined, so <code>total_resources</code> is absent rather than
+      set to the failing count. <code>fedramp_id</code> and <code>impact_level</code> are yours
+      to supply and stay null until you do.</p>
 
     <h2 id="planes"><span class="n">03</span>Five evidence planes</h2>
     <table>
@@ -141,6 +152,10 @@
         <tr><td><b>Email</b></td><td>Public DNS — SPF, DKIM, DMARC, MTA-STS</td><td>nothing (public)</td><td><span class="pill ok">live</span></td></tr>
         <tr><td><b>Guest patch</b></td><td>Systems Manager — patch baseline compliance and scan freshness per managed instance</td><td>SSM agent + patch association</td><td><span class="pill cy">opt-in</span></td></tr>
         <tr><td><b>AWS-authored</b></td><td>Security Hub — failing CIS and FSBP standards controls, mapped onto ISM controls</td><td>Security Hub enabled (charged)</td><td><span class="pill warn">if enabled</span></td></tr>
+      <tr><td><b>Config rules</b></td>
+        <td>AWS Config conformance packs — rules evaluated non-compliant, merged across regions</td>
+        <td>a conformance pack deployed</td>
+        <td><span class="opt">if deployed</span></td></tr>
       </tbody>
     </table>
     <div class="note"><b>Every region, discovered not assumed.</b> Diamondback asks EC2 which regions the account has enabled and scans all of them, so an opted-in region is never silently missed. Narrow the scope on the Scan tab when you want a faster pass.</div>
@@ -175,7 +190,43 @@
       describe, list and get calls, and running a command on your host is a different kind of act
       needing a different kind of permission.</p>
 
-    <h2 id="install"><span class="n">07</span>Install</h2>
+    <h2 id="crossaccount"><span class="n">07</span>Every account in the organisation</h2>
+    <p>Off by default. Turned on, Diamondback enumerates your AWS Organization, assumes a
+      read-only role in each member account, and sweeps them together — one assessment over the
+      estate rather than one per account. Deploy
+      <a href="diamondback-member-role.yaml">diamondback-member-role.yaml</a> as a StackSet: it
+      creates a role and nothing else, no compute and no cost, granting the same two AWS managed
+      read-only policies Diamondback itself runs with, assumable only by the named instance role
+      in the account you name, with an optional external id.</p>
+    <p>Every finding still names the account it came from. More importantly, <b>every account it
+      could not reach is named too</b>, with the reason — an unreachable account contributes no
+      findings, which is indistinguishable from an account with nothing wrong, and ten of them
+      out of forty would otherwise read as a clean estate. If your organisation cannot even be
+      listed, the reports say so and state that the number of accounts not covered is unknown.</p>
+    <p>Installed in a member account rather than the management account, <code>ListAccounts</code>
+      is refused by AWS and no IAM policy on that account can grant it. Diamondback says exactly
+      that, names your management account, and tells you to register as a delegated administrator
+      for Organizations or install there instead.</p>
+
+    <h2 id="cadence"><span class="n">08</span>Validation cadence</h2>
+    <p>FedRAMP phrases validation as a <b>maximum interval</b>. <code>VDR-TFR-MVX</code> requires
+      providers to verify and validate the status of machine-based information resources at least
+      once every <b>3 days</b> at Class C and every <b>7 days</b> at Class B; Class A is a monthly
+      SHOULD. The rules state no interval for Class D, and neither does Diamondback — inventing
+      one would be manufacturing an obligation.</p>
+    <p>Those numbers are read from the ruleset at runtime, not written into the product, so a
+      rules release that changes an interval changes the console and the reports without an
+      upgrade. The FedRAMP screen shows whether you are inside your interval, when validation
+      last ran, and the rule's own wording; both the PDF and the JSON carry the same, because a
+      clean report is worth what its date makes it worth — five days old does not satisfy a
+      three-day rule.</p>
+    <p><b>Recurring validation is off until you switch it on.</b> When enabled, Diamondback
+      repeats your last scan settings whenever the interval lapses. Each run spends your own AWS
+      API quota, which is why it stays your decision and never starts on its own. Runs are
+      claimed through the database, so even if the service were somehow running twice, exactly
+      one instance performs the scan.</p>
+
+    <h2 id="install"><span class="n">09</span>Install</h2>
     <p>From <a href="https://console.aws.amazon.com/cloudshell" target="_blank" rel="noopener">AWS CloudShell</a>, in the account you want assessed:</p>
     <pre><code>curl -sL https://diamondback.run/install.sh | bash -s -- --region ap-southeast-2 --admin-email you@agency.gov.au</code></pre>
     <p>This deploys one CloudFormation stack named <code>diamondback</code>: an <b>App Runner</b> service with a managed HTTPS endpoint, an <b>RDS Postgres</b> (encrypted, private, 7-day backups) for your attestations and decisions, a <b>Cognito</b> user pool for sign-in, a private VPC with a NAT gateway for egress, and an instance role holding <code>SecurityAudit</code> + <code>ViewOnlyAccess</code>. Infrastructure, identity, email and hardening checks work immediately. Allow 10–15 minutes; the database is the slow part.</p>
@@ -191,7 +242,7 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
   --targets Key=InstanceIds,Values=* --parameters Operation=Scan \
   --schedule-expression "rate(1 day)"</code></pre>
 
-    <h2 id="permissions"><span class="n">08</span>Access &amp; services to enable</h2>
+    <h2 id="permissions"><span class="n">10</span>Access &amp; services to enable</h2>
     <p>When a plane cannot collect, Diamondback surfaces the ask in the console — with the reason, the ISM controls it unlocks, a console deep link and a copy-paste command. Two shapes of ask, kept distinct because only one is fixed by editing a policy:</p>
     <h3>An AWS service that is not enabled</h3>
     <pre><code>aws securityhub enable-security-hub --region ap-southeast-2</code></pre>
@@ -202,14 +253,14 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
   --policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"ssm:DescribeInstancePatchStates","Resource":"*"}]}'</code></pre>
     <p>Every action Diamondback asks for is a describe, list or get — the read-only guard is asserted in the test suite, not just in the prose.</p>
 
-    <h2 id="identity"><span class="n">09</span>The role it runs as</h2>
+    <h2 id="identity"><span class="n">11</span>The role it runs as</h2>
     <p>Diamondback reads your account as the App Runner instance role <code>diamondback-instance-role</code>. The console reads that role back <i>from IAM</i> and shows the policies actually attached — a live check, not a claim. There is no service account password and no baked AWS secret; credentials come from the instance role, and the only secret is the Cognito client secret, injected as a runtime environment variable by CloudFormation.</p>
 
-    <h2 id="teardown"><span class="n">10</span>Teardown</h2>
+    <h2 id="teardown"><span class="n">12</span>Teardown</h2>
     <pre><code>aws cloudformation delete-stack --region ap-southeast-2 --stack-name diamondback</code></pre>
     <p>One command removes everything. The database is <b>snapshotted</b> before deletion, so your attestations and decisions are recoverable if you change your mind; delete the snapshot yourself when you are sure.</p>
 
-    <h2 id="frameworks"><span class="n">11</span>Frameworks</h2>
+    <h2 id="frameworks"><span class="n">13</span>Frameworks</h2>
     <p>One scan, mapped to every framework a finding touches — pinned to versions:</p>
     <table>
       <thead><tr><th>Framework</th><th>Version</th></tr></thead>
@@ -228,7 +279,7 @@ curl -sL https://diamondback.run/upgrade.sh | bash -s -- --region ap-southeast-2
       <img src="img/docs/03-hardening.png" alt="Diamondback hardening recommendations listing affected AWS resources, the CLI command that fixes each, and the public benchmarks the finding implements" loading="lazy">
       <figcaption><b>Hardening recommendations.</b> Every finding names the resources it applies to, with account and region, the AWS CLI command that fixes it, and the public benchmarks it implements — so one line item can be carried into whichever regime you answer to.</figcaption>
     </figure>
-    <h2 id="security"><span class="n">12</span>Security posture</h2>
+    <h2 id="security"><span class="n">14</span>Security posture</h2>
     <p>Read-only by construction: two AWS managed read-only policies, and every call in the source is a describe, list or get. No baked AWS secrets — the instance role supplies credentials. Cognito OIDC sign-in, fail-closed, with a 15-character password floor and MFA available. The database is encrypted at rest, private to the VPC, and reachable only from the app's security group. Attestations, decisions and branding persist there, so upgrades preserve them. The install template is public and the full source is available to security teams on request — <a href="mailto:security@diamondback.run">security@diamondback.run</a>.</p>
 </main>
 </div>
