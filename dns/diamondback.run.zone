@@ -1,0 +1,14 @@
+;; DMARC for diamondback.run — import via Cloudflare DNS → Records → Import and Export.
+;;
+;; Start with p=none, read the aggregate reports for a week or two, then replace this record
+;; with the p=reject line below it. Diamondback sends no mail, so enforcement breaks nothing.
+;;
+;; Route dmarc@diamondback.run to a real mailbox first, or the reports go nowhere.
+
+_dmarc.diamondback.run.	3600	IN	TXT	"v=DMARC1; p=none; rua=mailto:dmarc@diamondback.run; fo=1; adkim=s; aspf=s"
+
+;; Once observation is done, use this instead of the record above:
+;_dmarc.diamondback.run.	3600	IN	TXT	"v=DMARC1; p=reject; rua=mailto:dmarc@diamondback.run; fo=1; adkim=s; aspf=s"
+
+;; Optional: nothing sends from any subdomain either.
+;*.diamondback.run.	3600	IN	TXT	"v=spf1 -all"
